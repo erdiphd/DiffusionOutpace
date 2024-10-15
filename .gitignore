@@ -9,3 +9,9 @@ test.*
 config/paths/config_path.yaml
 figures/
 Palette-Image-to-Image-Diffusion-Models/experiments
+palette_artifacts/
+Metaworld/
+expl_agent*
+runs/
+test_images/
+run_sawyer_pick_place_and_diffusion.sh
