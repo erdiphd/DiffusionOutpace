@@ -8,9 +8,13 @@ import copy
 import pickle as pkl
 import sys
 
-sys.path.insert(1, '/home/faruk/Palette-Image-to-Image-Diffusion-Models')
-import infer
+sys.path.insert(1, os.path.join(os.path.abspath(os.path.dirname(__file__)),'palette'))
+#import infer
+from infer import single_img
+#from palette import infer
 from core.util import tensor2img 
+#from inspect import getmembers,isfunction
+#print(getmembers(palette,getmembers))
 
 import time
 import math
@@ -1227,15 +1231,15 @@ class Workspace(object):
                 if self.cfg.use_inpainting:
                     cur_model_dir = ""
                     if self.cfg.env in ['AntMazeSmall-v0', 'PointUMaze-v0']:
-                        cur_model_dir = "/home/faruk/Palette-Image-to-Image-Diffusion-Models/experiments/inpainting_u_maze_64_path_oriented/checkpoint/300_Network.pth"
+                        cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'palette/experiments/inpainting_u_maze_64_path_oriented/checkpoint/300_Network.pth')
                     elif self.cfg.env in ['sawyer_peg_pick_and_place']:
                         continue
                     elif self.cfg.env in ['sawyer_peg_push']:
-                        cur_model_dir = "/home/faruk/Palette-Image-to-Image-Diffusion-Models/experiments/inpainting_sawyer_push_path_oriented/checkpoint/300_Network.pth"        
+                        cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'palette/experiments/inpainting_sawyer_push_path_oriented/checkpoint/300_Network.pth')       
                     elif self.cfg.env == "PointSpiralMaze-v0":
-                        cur_model_dir = "/home/faruk/Palette-Image-to-Image-Diffusion-Models/experiments/train_inpainting_spiral_maze_64_path_oriented_large_black_new_data/checkpoint/300_Network.pth"
+                        cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'palette/experiments/inpainting_spiral_maze_64_path_oriented/checkpoint/300_Network.pth')       
                     elif self.cfg.env in ["PointNMaze-v0"]:
-                        cur_model_dir = "/home/faruk/Palette-Image-to-Image-Diffusion-Models/experiments/inpainting_n_maze_64_path_oriented/checkpoint/300_Network.pth"
+                        cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'palette/experiments/inpainting_n_maze_64_path_oriented/checkpoint/300_Network.pth')       
                         
                     if not os.path.exists(f"inpaint_results/episode_{episode}"):
                             os.makedirs(f"inpaint_results/episode_{episode}")
@@ -1244,7 +1248,7 @@ class Workspace(object):
                     goal_coordinates = []
                     selected_images = []
                     while not goal_coordinates:
-                        output_imgs = infer.single_img((cur_image_no_goal*255).astype('uint8'),True, f"inpaint_results/episode_{episode}/",model_pth = cur_model_dir,beta_schedule_n_steps = self.cfg.beta_schedule_n_steps)
+                        output_imgs = single_img((cur_image_no_goal*255).astype('uint8'),True, f"inpaint_results/episode_{episode}/",model_pth = cur_model_dir,beta_schedule_n_steps = self.cfg.beta_schedule_n_steps)
                         i = 0
                         for output_img in output_imgs:
                             completed_image = tensor2img(output_img)
