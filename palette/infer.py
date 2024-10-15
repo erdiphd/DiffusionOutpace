@@ -95,12 +95,33 @@ def inpaint_list(model, tf_images, episode, save):
 
 #for debugging
 def main():
-    model_pth = "/home/faruk/Palette-Image-to-Image-Diffusion-Models/experiments/inpainting_u_maze_64_path_oriented/checkpoint/300_Network.pth"
-    input_images_pth = "/home/faruk/Palette-Image-to-Image-Diffusion-Models/test_images/" # if you want to test multiple images
+    model_pth = "/home/faruk/outpace_official/palette/experiments/inpainting_u_maze_64_path_oriented/checkpoint/300_Network.pth"
+    input_images_pth = "/home/faruk/outpace_official/palette/test_images/" # if you want to test multiple images
 
     # config arg
-    opt = parse_config()
-    model_args = opt["model"]["which_networks"][0]["args"]
+    model_args = {'init_type': 'kaiming',
+                'module_name': 'guided_diffusion',
+                'unet': {'in_channel': 6,
+                    'out_channel': 3,
+                    'inner_channel': 64,
+                    'channel_mults': [1, 2, 4, 8],
+                    'attn_res': [8],
+                    'num_head_channels': 32,
+                    'res_blocks': 2,
+                    'dropout': 0.2,
+                    'image_size': 64
+                    },
+                'beta_schedule': {'train': {'schedule': 'linear', 
+                                        'n_timestep': 2000, 
+                                        'linear_start': 1e-06,
+                                        'linear_end': 0.01},
+                                'test': {'schedule': 'linear',
+                                        'n_timestep': 250,
+                                        'linear_start': 0.0001,
+                                        'linear_end': 0.09
+                                        }
+                                }
+                }
 
     # initializa model
     model = Network(**model_args)
