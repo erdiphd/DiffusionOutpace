@@ -1244,8 +1244,8 @@ class Workspace(object):
                     elif self.cfg.env in ["PointNMaze-v0"]:
                         cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'palette/experiments/inpainting_n_maze_64_path_oriented/checkpoint/300_Network.pth')       
                         
-                    if not os.path.exists(f"inpaint_results/episode_{episode}"):
-                            os.makedirs(f"inpaint_results/episode_{episode}")
+                    if not os.path.exists(f"inpaint_results/episode_{episode}") and self.cfg.env not in ['sawyer_peg_pick_and_place'] :
+                        os.makedirs(f"inpaint_results/episode_{episode}")
 
                     IMG_DIMS = 64
                     goal_coordinates = []
@@ -1310,11 +1310,11 @@ class Workspace(object):
                             output_imgs_yz = single_img((cur_image_yz_no_goal*255).astype('uint8'),True, f"inpaint_results_yz/episode_{episode}/",model_pth = cur_model_dir_yz,beta_schedule_n_steps = self.cfg.beta_schedule_n_steps)
                             i = 0
                             for output_img_xy in output_imgs_xy:
-                                completed_image_xy = tensor2img(output_img)
+                                completed_image_xy = tensor2img(output_img_xy)
                                 completed_image_yz = tensor2img(output_imgs_yz[i])
-                                gray_image_xy = cv2.cvtColor(completed_image,cv2.COLOR_BGR2GRAY)
+                                gray_image_xy = cv2.cvtColor(completed_image_xy,cv2.COLOR_BGR2GRAY)
                                 gray_image_xy = np.flipud(gray_image_xy)
-                                gray_image_yz = cv2.cvtColor(completed_image,cv2.COLOR_BGR2GRAY)
+                                gray_image_yz = cv2.cvtColor(completed_image_yz,cv2.COLOR_BGR2GRAY)
                                 gray_image_yz = np.flipud(gray_image_yz)
 
                                 goal_coordinate_xy = (np.argwhere(gray_image_xy == np.min(gray_image_xy))[0] / IMG_DIMS)
@@ -1324,13 +1324,16 @@ class Workspace(object):
 
                                 goal_coordinate_yz = (np.argwhere(gray_image_yz == np.min(gray_image_yz))[0] / IMG_DIMS)
                                 goal_coordinate_yz[0] = goal_coordinate_yz[0] * maze_dim_y
-                                goal_coordinate_yz[1] = goal_coordinate_yz[1] * maze_dim_z
-                                goal_coordinate_yz = np.flip(goal_coordinate_yz)
+                                goal_coordinate_yz[1] = (goal_coordinate_yz[1] * (maze_dim_z))
+                                #goal_coordinate_yz = np.flip(goal_coordinate_yz)
+
 
                                 goal_coordinate = np.zeros(3)
                                 goal_coordinate[0] = goal_coordinate_xy[0]
                                 goal_coordinate[1] = (goal_coordinate_xy[1] + goal_coordinate_yz[0])/2
                                 goal_coordinate[2] = goal_coordinate_yz[1]
+
+                                #print(goal_coordinate)
 
                                 goal_coordinate[0] = goal_coordinate[0] + random.uniform(-0.05,0.05) + self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0]
                                 goal_coordinate[1] = goal_coordinate[1] + random.uniform(-0.05,0.05) + self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1]
@@ -1358,7 +1361,7 @@ class Workspace(object):
                             if not goal_coordinates:
                                 print("No goals detected, running inference again.")
 
-                    print("Goals are at", goal_coordinates)
+                    #print("Goals are at", goal_coordinates)
                     #print("Selected images are", selected_images)
 
                     if not self.cfg.use_inpainting_aim and not self.cfg.use_inpainting_q:
@@ -1390,8 +1393,8 @@ class Workspace(object):
 
                         #print(f"For episode {episode} Optimal goal is output{optimal_goal_index}.jpg with coordinate {goal_candidates[optimal_goal_index]}")
                         if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
-                            os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
-                            os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
+                            os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images_xy[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
+                            os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images_yz[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
                         else:
                             os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
                         inpaint_goal = goal_candidates[optimal_goal_index]
@@ -1441,8 +1444,8 @@ class Workspace(object):
                             optimal_goal = np.random.choice(Q_means, p = probabilities)
                             optimal_goal_index = np.argmax(Q_means==optimal_goal)
                             if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
-                                os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
-                                os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
+                                os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images_xy[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
+                                os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images_yz[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
                             else:
                                 os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
                             inpaint_goal = goal_candidates[optimal_goal_index]
@@ -1491,8 +1494,8 @@ class Workspace(object):
                             optimal_goal = np.random.choice(Q_means, p = probabilities)
                             optimal_goal_index = np.argmax(Q_means==optimal_goal)
                             if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
-                                os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
-                                os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
+                                os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images_xy[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
+                                os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images_yz[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
                             else:
                                 os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
                             inpaint_goal = goal_candidates[optimal_goal_index]
@@ -1550,8 +1553,8 @@ class Workspace(object):
                             optimal_goal = np.random.choice(Q_means, p = probabilities)
                             optimal_goal_index = np.argmax(Q_means==optimal_goal)
                             if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
-                                os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
-                                os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
+                                os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images_xy[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
+                                os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images_yz[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
                             else:
                                 os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
                             inpaint_goal = goal_candidates[optimal_goal_index]
@@ -1565,7 +1568,7 @@ class Workspace(object):
                             print("Using Q and aim")
                             spec = self.env.action_spec()                
                             action = np.random.uniform(spec.low, spec.high, spec.shape)
-                            print(obs)
+                            #print(obs)
                             cur_obs_list = []
                             cur_actions = []
                             for goal_candidate in goal_candidates: 
@@ -1629,8 +1632,8 @@ class Workspace(object):
                         optimal_goal = np.random.choice(Q_means, p = probabilities)
                         optimal_goal_index = np.argmax(Q_means==optimal_goal)
                         if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
-                            os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
-                            os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
+                            os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images_xy[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
+                            os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images_yz[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
                         else:
                             os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
                         inpaint_goal = goal_candidates[optimal_goal_index]
