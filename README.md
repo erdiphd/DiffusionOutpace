@@ -1,6 +1,6 @@
 # DiffusionOutpace
 
-This is an implementation of OUTPACE with a diffusion based inpainting (Palette) for curriculum goal generation. It is implemented as a master thesis for TUM. Below are the setup instructions for the outpace. Palette usage will be added later.
+This is an implementation of OUTPACE with a diffusion based inpainting (Palette) for curriculum goal generation. It is implemented as a master thesis for TUM. Below are the setup instructions for the outpace. Palette also uses the same conda environment with outpace, so there is no need to install anything additional..
 
 # OUTPACE
 
