@@ -800,7 +800,9 @@ class Workspace(object):
                     prev_val_x = 0
 
                     for i in range(len(positions)):
-                        agent_size = image_scale//15
+                        if self.cfg.env == "sawyer_peg_pick_and_place":
+                            agent_size = image_scale//15
+                            #z_ratio = 4 #Since the max dimensions of x and z are different by almost 3 times and z should be more precise, I am scaling z by 4
                         cur_val_y = int(round((positions[i][0] - self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0])*image_scale))
                         cur_val_x = int((maze_dim_x*image_scale)-1 - round((positions[i][1] - self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1])*image_scale))
 
