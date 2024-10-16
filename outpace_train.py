@@ -1235,7 +1235,8 @@ class Workspace(object):
                     if self.cfg.env in ['AntMazeSmall-v0', 'PointUMaze-v0']:
                         cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'palette/experiments/inpainting_u_maze_64_path_oriented/checkpoint/300_Network.pth')
                     elif self.cfg.env in ['sawyer_peg_pick_and_place']:
-                        continue
+                        cur_model_dir_xy = os.path.join(os.path.abspath(os.path.dirname(__file__)),'palette/experiments/inpainting_sawyer_pick_place_xy_64_path_oriented/checkpoint/300_Network.pth')
+                        cur_model_dir_yz = os.path.join(os.path.abspath(os.path.dirname(__file__)),'palette/experiments/inpainting_sawyer_pick_place_yz_64_path_oriented/checkpoint/300_Network.pth')
                     elif self.cfg.env in ['sawyer_peg_push']:
                         cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'palette/experiments/inpainting_sawyer_push_path_oriented/checkpoint/300_Network.pth')       
                     elif self.cfg.env == "PointSpiralMaze-v0":
@@ -1249,59 +1250,115 @@ class Workspace(object):
                     IMG_DIMS = 64
                     goal_coordinates = []
                     selected_images = []
+
+                    if self.cfg.env in ['sawyer_peg_pick_and_place']:
+                        selected_images_xy = []
+                        selected_images_yz = []
                     while not goal_coordinates:
-                        output_imgs = single_img((cur_image_no_goal*255).astype('uint8'),True, f"inpaint_results/episode_{episode}/",model_pth = cur_model_dir,beta_schedule_n_steps = self.cfg.beta_schedule_n_steps)
-                        i = 0
-                        for output_img in output_imgs:
-                            completed_image = tensor2img(output_img)
-                            gray_image = cv2.cvtColor(completed_image,cv2.COLOR_BGR2GRAY)
-                            gray_image = np.flipud(gray_image)
-                            if np.min(gray_image) < 5:
-                                goal_coordinate = (np.argwhere(gray_image == np.min(gray_image))[0] / IMG_DIMS)
-                                goal_coordinate[0] = goal_coordinate[0] * maze_dim_x
-                                goal_coordinate[1] = goal_coordinate[1] * maze_dim_y
-                                goal_coordinate = np.flip(goal_coordinate)
+                        if self.cfg.env not in ['sawyer_peg_pick_and_place']:
+                            output_imgs = single_img((cur_image_no_goal*255).astype('uint8'),True, f"inpaint_results/episode_{episode}/",model_pth = cur_model_dir,beta_schedule_n_steps = self.cfg.beta_schedule_n_steps)
+                            i = 0
+                            for output_img in output_imgs:
+                                completed_image = tensor2img(output_img)
+                                gray_image = cv2.cvtColor(completed_image,cv2.COLOR_BGR2GRAY)
+                                gray_image = np.flipud(gray_image)
+                                if np.min(gray_image) < 5:
+                                    goal_coordinate = (np.argwhere(gray_image == np.min(gray_image))[0] / IMG_DIMS)
+                                    goal_coordinate[0] = goal_coordinate[0] * maze_dim_x
+                                    goal_coordinate[1] = goal_coordinate[1] * maze_dim_y
+                                    goal_coordinate = np.flip(goal_coordinate)
 
-                                if self.cfg.env in ['sawyer_peg_push']:
-                                    temp_goal = np.zeros(3)
-                                    temp_goal[0] = goal_coordinate[0]
-                                    temp_goal[1] = goal_coordinate[1]
-                                    temp_goal[2] = 0.01478
-                                    goal_coordinate = temp_goal
+                                    if self.cfg.env in ['sawyer_peg_push']:
+                                        temp_goal = np.zeros(3)
+                                        temp_goal[0] = goal_coordinate[0]
+                                        temp_goal[1] = goal_coordinate[1]
+                                        temp_goal[2] = 0.01478
+                                        goal_coordinate = temp_goal
 
-                                    goal_coordinate[0] = goal_coordinate[0] + random.uniform(-0.05,0.05) + self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0]
-                                    goal_coordinate[1] = goal_coordinate[1] + random.uniform(-0.05,0.05) + self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1]
-                                    if goal_coordinate[0] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0] or goal_coordinate[0] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0]:
-                                        if goal_coordinate[0] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0]:
-                                            goal_coordinate[0] = self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0] + 0.002
-                                        if goal_coordinate[0] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0]:
-                                            goal_coordinate[0] = self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0] - 0.002
-                                    if goal_coordinate[1] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1] or goal_coordinate[1] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0]:
-                                        if goal_coordinate[1] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1]:
-                                            goal_coordinate[1] = self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1] + 0.002
-                                        if goal_coordinate[1] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[1]:
-                                            goal_coordinate[1] = self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[1] - 0.002
-                                else:
-                                    goal_coordinate[0] = goal_coordinate[0] + random.uniform(-0.5,0.5) + self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0]
-                                    goal_coordinate[1] = goal_coordinate[1] + random.uniform(-0.5,0.5) + self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1]
-                                    if goal_coordinate[0] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0] or goal_coordinate[0] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0]:
-                                        if goal_coordinate[0] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0]:
-                                            goal_coordinate[0] = self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0] + 0.02
-                                        if goal_coordinate[0] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0]:
-                                            goal_coordinate[0] = self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0] - 0.02
-                                    if goal_coordinate[1] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1] or goal_coordinate[1] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0]:
-                                        if goal_coordinate[1] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1]:
-                                            goal_coordinate[1] = self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1] + 0.02
-                                        if goal_coordinate[1] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[1]:
-                                            goal_coordinate[1] = self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[1] - 0.02
+                                        goal_coordinate[0] = goal_coordinate[0] + random.uniform(-0.05,0.05) + self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0]
+                                        goal_coordinate[1] = goal_coordinate[1] + random.uniform(-0.05,0.05) + self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1]
+                                        if goal_coordinate[0] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0] or goal_coordinate[0] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0]:
+                                            if goal_coordinate[0] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0]:
+                                                goal_coordinate[0] = self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0] + 0.002
+                                            if goal_coordinate[0] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0]:
+                                                goal_coordinate[0] = self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0] - 0.002
+                                        if goal_coordinate[1] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1] or goal_coordinate[1] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[1]:
+                                            if goal_coordinate[1] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1]:
+                                                goal_coordinate[1] = self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1] + 0.002
+                                            if goal_coordinate[1] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[1]:
+                                                goal_coordinate[1] = self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[1] - 0.002
+                                    else:
+                                        goal_coordinate[0] = goal_coordinate[0] + random.uniform(-0.5,0.5) + self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0]
+                                        goal_coordinate[1] = goal_coordinate[1] + random.uniform(-0.5,0.5) + self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1]
+                                        if goal_coordinate[0] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0] or goal_coordinate[0] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0]:
+                                            if goal_coordinate[0] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0]:
+                                                goal_coordinate[0] = self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0] + 0.02
+                                            if goal_coordinate[0] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0]:
+                                                goal_coordinate[0] = self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0] - 0.02
+                                        if goal_coordinate[1] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1] or goal_coordinate[1] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[1]:
+                                            if goal_coordinate[1] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1]:
+                                                goal_coordinate[1] = self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1] + 0.02
+                                            if goal_coordinate[1] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[1]:
+                                                goal_coordinate[1] = self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[1] - 0.02
+                                    goal_coordinates.append(goal_coordinate)
+                                    selected_images.append(f"output{i}.jpg")
+                                i += 1
+                            if not goal_coordinates:
+                                print("No goals detected, running inference again.")
+                        else:
+                            output_imgs_xy = single_img((cur_image_no_goal*255).astype('uint8'),True, f"inpaint_results_xy/episode_{episode}/",model_pth = cur_model_dir_xy,beta_schedule_n_steps = self.cfg.beta_schedule_n_steps)
+                            output_imgs_yz = single_img((cur_image_yz_no_goal*255).astype('uint8'),True, f"inpaint_results_yz/episode_{episode}/",model_pth = cur_model_dir_yz,beta_schedule_n_steps = self.cfg.beta_schedule_n_steps)
+                            i = 0
+                            for output_img_xy in output_imgs_xy:
+                                completed_image_xy = tensor2img(output_img)
+                                completed_image_yz = tensor2img(output_imgs_yz[i])
+                                gray_image_xy = cv2.cvtColor(completed_image,cv2.COLOR_BGR2GRAY)
+                                gray_image_xy = np.flipud(gray_image_xy)
+                                gray_image_yz = cv2.cvtColor(completed_image,cv2.COLOR_BGR2GRAY)
+                                gray_image_yz = np.flipud(gray_image_yz)
+
+                                goal_coordinate_xy = (np.argwhere(gray_image_xy == np.min(gray_image_xy))[0] / IMG_DIMS)
+                                goal_coordinate_xy[0] = goal_coordinate_xy[0] * maze_dim_x
+                                goal_coordinate_xy[1] = goal_coordinate_xy[1] * maze_dim_y
+                                goal_coordinate_xy = np.flip(goal_coordinate_xy)
+
+                                goal_coordinate_yz = (np.argwhere(gray_image_yz == np.min(gray_image_yz))[0] / IMG_DIMS)
+                                goal_coordinate_yz[0] = goal_coordinate_yz[0] * maze_dim_y
+                                goal_coordinate_yz[1] = goal_coordinate_yz[1] * maze_dim_z
+                                goal_coordinate_yz = np.flip(goal_coordinate_yz)
+
+                                goal_coordinate = np.zeros(3)
+                                goal_coordinate[0] = goal_coordinate_xy[0]
+                                goal_coordinate[1] = (goal_coordinate_xy[1] + goal_coordinate_yz[0])/2
+                                goal_coordinate[2] = goal_coordinate_yz[1]
+
+                                goal_coordinate[0] = goal_coordinate[0] + random.uniform(-0.05,0.05) + self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0]
+                                goal_coordinate[1] = goal_coordinate[1] + random.uniform(-0.05,0.05) + self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1]
+                                goal_coordinate[2] = goal_coordinate[2] + random.uniform(-0.01,0.01) + self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[2]
+                                if goal_coordinate[0] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0] or goal_coordinate[0] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0]:
+                                    if goal_coordinate[0] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0]:
+                                        goal_coordinate[0] = self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[0] + 0.002
+                                    if goal_coordinate[0] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0]:
+                                        goal_coordinate[0] = self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[0] - 0.002
+                                if goal_coordinate[1] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1] or goal_coordinate[1] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[1]:
+                                    if goal_coordinate[1] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1]:
+                                        goal_coordinate[1] = self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[1] + 0.002
+                                    if goal_coordinate[1] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[1]:
+                                        goal_coordinate[1] = self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[1] - 0.002
+                                if goal_coordinate[2] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[2] or goal_coordinate[2] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[2]:
+                                    if goal_coordinate[2] <= self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[2]:
+                                        goal_coordinate[2] = self.uniform_goal_sampler.LOWER_CONTEXT_BOUNDS[2] + 0.002
+                                    if goal_coordinate[2] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[2]:
+                                        goal_coordinate[2] = self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[2] - 0.002
+    
                                 goal_coordinates.append(goal_coordinate)
-                                selected_images.append(f"output{i}.jpg")
-                            i += 1
-                        if not goal_coordinates:
-                            print("No goals detected, running inference again.")
-                            
+                                selected_images_xy.append(f"output{i}.jpg")
+                                selected_images_yz.append(f"output{i}.jpg")
+                                i += 1
+                            if not goal_coordinates:
+                                print("No goals detected, running inference again.")
 
-                    #print("Goals are at", goal_coordinates)
+                    print("Goals are at", goal_coordinates)
                     #print("Selected images are", selected_images)
 
                     if not self.cfg.use_inpainting_aim and not self.cfg.use_inpainting_q:
@@ -1316,7 +1373,7 @@ class Workspace(object):
                         if episode == 0: # sample random action for episode 0
                             print("Using aim for goal selection")
 
-                        if self.cfg.env in ['sawyer_peg_push']: 
+                        if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
                             initial_states = np.tile(np.array([0.4, 0.8, 0.02]), (num_grid_point, 1))
                         else:
                             initial_states = np.tile(np.array([0,0]), (num_grid_point, 1))
@@ -1332,7 +1389,11 @@ class Workspace(object):
                         optimal_goal_index = np.argmax(aim_output==optimal_goal)
 
                         #print(f"For episode {episode} Optimal goal is output{optimal_goal_index}.jpg with coordinate {goal_candidates[optimal_goal_index]}")
-                        os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
+                        if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
+                            os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
+                            os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
+                        else:
+                            os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
                         inpaint_goal = goal_candidates[optimal_goal_index]
                     elif self.cfg.use_inpainting_q and not self.cfg.use_inpainting_aim:
                         goal_candidates = np.array(goal_coordinates)
@@ -1340,13 +1401,16 @@ class Workspace(object):
                             cur_obs_list = []
                             cur_actions = []
                             if episode == 0: # sample random action for episode 0
-                                    print("Using Q with final action/obs")
-                                    spec = self.env.action_spec()                
-                                    action = np.random.uniform(spec.low, spec.high, spec.shape)
+                                print("Using Q with final action/obs")
+                                spec = self.env.action_spec()
+                                action = np.random.uniform(spec.low, spec.high, spec.shape)
                             #print(obs)
                             for goal_candidate in goal_candidates: 
                                 my_obs = obs
-                                my_obs[8:] = goal_candidate
+                                if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
+                                    my_obs[7:] = goal_candidate
+                                else:
+                                    my_obs[8:] = goal_candidate
                                 #print(goal_candidate)
                                 #print(my_obs)
                                 #print(my_obs.shape)
@@ -1376,20 +1440,27 @@ class Workspace(object):
                             #print("Probabilities",probabilities)
                             optimal_goal = np.random.choice(Q_means, p = probabilities)
                             optimal_goal_index = np.argmax(Q_means==optimal_goal)
-                            os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
+                            if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
+                                os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
+                                os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
+                            else:
+                                os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
                             inpaint_goal = goal_candidates[optimal_goal_index]
                         elif self.cfg.use_inpainting_q_initial:
                             cur_obs_list = []
                             cur_actions = []
                             if episode == 0: # sample random action for episode 0
-                                    print("Using Q with initial action/obs")
-                                    init_obs = obs
-                                    spec = self.env.action_spec()                
-                                    init_action = np.random.uniform(spec.low, spec.high, spec.shape)
+                                print("Using Q with initial action/obs")
+                                init_obs = obs
+                                spec = self.env.action_spec()
+                                init_action = np.random.uniform(spec.low, spec.high, spec.shape)
                             #print(obs)
                             for goal_candidate in goal_candidates: 
                                 my_obs = init_obs
-                                my_obs[8:] = goal_candidate
+                                if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
+                                    my_obs[7:] = goal_candidate
+                                else:
+                                    my_obs[8:] = goal_candidate
                                 #print(goal_candidate)
                                 #print(my_obs)
                                 #print(my_obs.shape)
@@ -1419,21 +1490,25 @@ class Workspace(object):
                             #print("Probabilities",probabilities)
                             optimal_goal = np.random.choice(Q_means, p = probabilities)
                             optimal_goal_index = np.argmax(Q_means==optimal_goal)
-                            os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
+                            if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
+                                os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
+                                os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
+                            else:
+                                os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
                             inpaint_goal = goal_candidates[optimal_goal_index]
 
                         elif self.cfg.use_inpainting_q_all:
                             q_mean_list = []
                             if episode == 0: # Episode 0 is an edge case as there is only 1 observation and no action
                                 print("Using Q with all action/obs")
-                                spec = self.env.action_spec()                
+                                spec = self.env.action_spec()
                                 action = np.random.uniform(spec.low, spec.high, spec.shape)
                             #print(obs)
                                 cur_obs_list = []
                                 cur_actions = []
                                 for goal_candidate in goal_candidates: 
                                     my_obs = obs
-                                    if self.cfg.env in ['sawyer_peg_push']:
+                                    if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
                                         my_obs[7:] = goal_candidate
                                     else:
                                         my_obs[8:] = goal_candidate
@@ -1456,7 +1531,7 @@ class Workspace(object):
                                 for goal_candidate in goal_candidates: 
                                     cur_observes = np.array(observe_array)
                                     for item in cur_observes: #update cur_observes with the current goal candidate
-                                        if self.cfg.env in ['sawyer_peg_push']:
+                                        if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
                                             item[7:] = goal_candidate
                                         else:
                                             item[8:] = goal_candidate
@@ -1474,7 +1549,11 @@ class Workspace(object):
                             #print("Probabilities",probabilities)
                             optimal_goal = np.random.choice(Q_means, p = probabilities)
                             optimal_goal_index = np.argmax(Q_means==optimal_goal)
-                            os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
+                            if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
+                                os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
+                                os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
+                            else:
+                                os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
                             inpaint_goal = goal_candidates[optimal_goal_index]
                         
                     elif self.cfg.use_inpainting_q and self.cfg.use_inpainting_aim:
@@ -1491,7 +1570,7 @@ class Workspace(object):
                             cur_actions = []
                             for goal_candidate in goal_candidates: 
                                 my_obs = obs
-                                if self.cfg.env in ['sawyer_peg_push']:
+                                if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
                                     my_obs[7:] = goal_candidate
                                 else:
                                     my_obs[8:] = goal_candidate
@@ -1515,7 +1594,7 @@ class Workspace(object):
                             for goal_candidate in goal_candidates: 
                                 cur_observes = np.array(observe_array)
                                 for item in cur_observes: #update cur_observes with the current goal candidate
-                                    if self.cfg.env in ['sawyer_peg_push']:
+                                    if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
                                         item[7:] = goal_candidate
                                     else:
                                         item[8:] = goal_candidate
@@ -1533,7 +1612,7 @@ class Workspace(object):
                         #Get aim rewards
                         num_grid_point = goal_candidates.shape[0]
 
-                        if self.cfg.env in ['sawyer_peg_push']: 
+                        if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
                             initial_states = np.tile(np.array([0.4, 0.8, 0.02]), (num_grid_point, 1))
                         else:
                             initial_states = np.tile(np.array([0,0]), (num_grid_point, 1))
@@ -1549,7 +1628,11 @@ class Workspace(object):
                         #print("Probabilities",probabilities)
                         optimal_goal = np.random.choice(Q_means, p = probabilities)
                         optimal_goal_index = np.argmax(Q_means==optimal_goal)
-                        os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
+                        if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
+                            os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
+                            os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
+                        else:
+                            os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
                         inpaint_goal = goal_candidates[optimal_goal_index]
 
 
