@@ -254,7 +254,9 @@ def single_img(img,save=False,save_path="./inpaint_results/",model_pth = "/home/
 
     tfs = transforms.Compose([
         transforms.ToTensor(),
+        transforms.ToPILImage(),
         transforms.Resize((64, 64)),
+        transforms.ToTensor(),
         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
     ])
 
