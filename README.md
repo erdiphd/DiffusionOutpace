@@ -41,6 +41,7 @@ see config/paths/template.yaml
 ```
 pip install git+https://github.com/rlworkgroup/metaworld.git@master#egg=metaworld
 ```
+6. Create a new directory called "weights" and create 6 subdirectories under it, called "PointUMaze","PointNMaze","PointSpiralMaze","sawyer_peg_push","sawyer_peg_pick_and_place_xy","sawyer_peg_pick_and_place_yz". Put the palette weights (300_Network.pth) for every weight to their respective directory.
 
 
 ## Usage
