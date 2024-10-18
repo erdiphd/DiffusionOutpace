@@ -249,9 +249,9 @@ env_path : ${paths.default_env_path}
 hydra:
   # name: ${env}
   run: # single process        
-    dir: ${save_path_prefix}/${env}/${now:%Y.%m.%d}/${now:%H%M%S}_aim_${use_inpainting_aim}_q_${use_inpainting_q}_beta_steps_${beta_schedule_n_steps}
+    dir: ${save_path_prefix}/${env}/${now:%Y.%m.%d}/${now:%H%M%S}_aim_${use_inpainting_aim}_q_${use_inpainting_q}_beta_steps_${beta_schedule_n_steps}_seed_${seed}
 
   sweep: # multi process
-    dir: ${save_path_prefix}/${env}/${now:%Y.%m.%d}/${now:%H%M%S}_aim_${use_inpainting_aim}_q_${use_inpainting_q}_beta_steps_${beta_schedule_n_steps}
+    dir: ${save_path_prefix}/${env}/${now:%Y.%m.%d}/${now:%H%M%S}_aim_${use_inpainting_aim}_q_${use_inpainting_q}_beta_steps_${beta_schedule_n_steps}_seed_${seed}
     subdir: ${seed} 
   
