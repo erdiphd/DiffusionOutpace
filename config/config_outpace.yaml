@@ -8,7 +8,7 @@ env: ???
 action_repeat: 1
 seed: 1 #All trainings are done in seed 1, will test with a different seed as well
 # eval
-eval_frequency: 10000 #1000 for u maze #10000 #for spiral and n maze sawyer push
+eval_frequency: 1000 #1000 for u maze #10000 #for spiral and n maze sawyer push
 train_episode_video_freq : 100
 num_eval_episodes: 10
 # misc
@@ -37,7 +37,7 @@ normalize_nml_obs : false
 normalize_f_obs : true #true
 normalize_rl_obs : true 
 
-num_train_steps: 800000 #40000 for U #200000 for N #400000 for spiral these are for default #800000 for sawyer push
+num_train_steps: 40000 #40000 for U #200000 for N #400000 for spiral these are for default #800000 for sawyer push
 num_random_steps: ??? 
 num_seed_steps : ??? 
 replay_buffer_capacity: 3000000
@@ -65,9 +65,9 @@ use_hgg : true #false
 
 render_images : true
 
-trajectory_save : false
+trajectory_save : true
 
-use_inpainting : false
+use_inpainting : true
 use_inpainting_aim: true
 use_inpainting_q: true
 use_inpainting_q_final: false
@@ -249,9 +249,9 @@ env_path : ${paths.default_env_path}
 hydra:
   # name: ${env}
   run: # single process        
-    dir: ${save_path_prefix}/${env}/${now:%Y.%m.%d}/${now:%H%M%S}_test
+    dir: ${save_path_prefix}/${env}/${now:%Y.%m.%d}/${now:%H%M%S}_aim_${use_inpainting_aim}_q_${use_inpainting_q}_beta_steps_${beta_schedule_n_steps}
 
   sweep: # multi process
-    dir: ${save_path_prefix}/${env}/${now:%Y.%m.%d}/${now:%H%M%S}_test
+    dir: ${save_path_prefix}/${env}/${now:%Y.%m.%d}/${now:%H%M%S}_aim_${use_inpainting_aim}_q_${use_inpainting_q}_beta_steps_${beta_schedule_n_steps}
     subdir: ${seed} 
   
