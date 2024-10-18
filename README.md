@@ -1,6 +1,6 @@
 # DiffusionOutpace
 
-This is an implementation of OUTPACE with a diffusion based inpainting (Palette) for curriculum goal generation. It is implemented as a master thesis for TUM. Below are the setup instructions for the outpace. Palette also uses the same conda environment with outpace, so there is no need to install anything additional..
+This is an implementation of OUTPACE with a diffusion based inpainting (Palette) for curriculum goal generation. It is implemented as a master thesis for TUM. Below are the setup instructions for the outpace. Palette also uses the same conda environment with outpace, so there is no need to install anything additional.
 
 # OUTPACE
 
@@ -45,6 +45,11 @@ pip install git+https://github.com/rlworkgroup/metaworld.git@master#egg=metaworl
 
 ## Usage
 ### Training and Evaluation
+
+ADD --config-name={config_name} to run with a different config than config_outpace.yaml. Useful for multiple testing in the same dir.
+Name of the saved dir is also under hydra in config file, just update it accordingly. Also add seed=i to the run command where i={1,...,5} for testing.
+
+
 
 PointUMaze-v0
 ```
