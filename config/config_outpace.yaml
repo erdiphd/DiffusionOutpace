@@ -53,7 +53,7 @@ curriculum_buffer : default # aim
 
 
 
-use_residual_randomwalk : true #will try for false
+use_residual_randomwalk : false #will try for false
 use_uncertainty_for_randomwalk : 'nml' #'nml' 'f' 'none'
 randomwalk_num_candidate : 10 
 randomwalk_random_noise : ??? 
