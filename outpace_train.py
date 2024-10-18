@@ -417,7 +417,7 @@ class Workspace(object):
     def evaluate(self, eval_uniform_goal=False):
         uniform_goal=False
         repeat = 2 if eval_uniform_goal else 1
-                        
+        eval_trajectories_array_container = []
         for r in range(repeat):            
             uniform_goal = True if r==1 else False
 
@@ -444,6 +444,8 @@ class Workspace(object):
                     
                     with utils.eval_mode(agent):
                         action = agent.act(obs, spec = self.eval_env.action_spec(), sample=False)
+
+                    eval_trajectories_array_container.append(obs)
                     next_obs, reward, done, info = self.eval_env.step(action)
 
                     #if  self.cfg.num_train_steps > self.step:
@@ -515,9 +517,9 @@ class Workspace(object):
                     ax4.plot(timesteps, aim_disc_outputs_reverse, label = 'aim_disc_output_reverse')
                     ax4.legend(loc ='upper right')
                     if uniform_goal:
-                        plt.savefig(self.eval_video_recorder.save_dir+'/aim_outputs_uniform_goal_'+str(self.step)+'.jpg')
+                        plt.savefig(self.eval_video_recorder.save_dir+'/aim_outputs_uniform_goal_'+str(self.step)+'.png')
                     else:
-                        plt.savefig(self.eval_video_recorder.save_dir+'/aim_outputs_'+str(self.step)+'.jpg')
+                        plt.savefig(self.eval_video_recorder.save_dir+'/aim_outputs_'+str(self.step)+'.png')
                     plt.close()
                     
                 avg_episode_reward += episode_reward
@@ -525,6 +527,13 @@ class Workspace(object):
                     self.eval_video_recorder.save(f'uniform_goal_{self.step}.mp4')
                 else:
                     self.eval_video_recorder.save(f'{self.step}.mp4')
+
+                if self.cfg.trajectory_save:
+                        if not os.path.exists("trajectories"):
+                            os.makedirs("trajectories")
+                        np.save("trajectories/eval_trajectory_episode_"+str(episode)+ "_" +str(self.step)+".npy",np.array(eval_trajectories_array_container))
+                        eval_trajectories_array_container = []
+
             avg_episode_reward /= self.cfg.num_eval_episodes
             avg_episode_success_rate = avg_episode_success_rate/self.cfg.num_eval_episodes
             if uniform_goal:                
@@ -600,7 +609,8 @@ class Workspace(object):
 
         action_list = []
         observe_list = []
-
+        trajectories_array_container = []
+        generated_curriculum_points = []
 
         while self.step <= self.cfg.num_train_steps:
             
@@ -660,7 +670,7 @@ class Workspace(object):
                         # print('hgg sampler pool len : {} step : {}'.format(len(hgg_sampler.pool), self.step))
                         sampled_goal = hgg_sampler.sample(np.random.randint(len(hgg_sampler.pool))).copy()                        #THIS LINE GIVES CURRICULUM GOAL
                         obs = self.env.reset(goal = sampled_goal)
-
+                        generated_curriculum_points.append(obs)
                         if not self.env.is_successful(obs):
                             break
                         n_iter +=1
@@ -675,7 +685,7 @@ class Workspace(object):
                     agent = self.get_agent()
                     if self.step != 0 and self.cfg.use_inpainting:
                         obs = self.env.reset(goal = inpaint_goal) # this is state_0 # u maze de 10 boyutlu
-                        #generated_curriculum_goal.append(obs)
+                        generated_curriculum_points.append(obs)
                     else: 
                         obs = self.env.reset()
                 final_goal = self.env.goal.copy()            
@@ -713,7 +723,7 @@ class Workspace(object):
                         plt.ylim(0.2,1.0)
                     else:
                         raise NotImplementedError
-                    plt.savefig(self.train_video_recorder.save_dir+'/train_hgg_goals_episode_'+str(episode)+'.jpg')
+                    plt.savefig(self.train_video_recorder.save_dir+'/train_hgg_goals_episode_'+str(episode)+'.png')
                     plt.close()
                     with open(self.train_video_recorder.save_dir+'/train_hgg_goals_episode_'+str(episode)+'.pkl', 'wb') as f:
                         pkl.dump(sampled_goals_for_vis, f)
@@ -931,11 +941,11 @@ class Workspace(object):
 
                     if not os.path.exists("heatmaps"):
                         os.makedirs("heatmaps")
-                    cv2.imwrite(f"heatmaps/heatmap_episode{episode}.jpg", (cur_image*255).astype('uint8'))
+                    cv2.imwrite(f"heatmaps/heatmap_episode{episode}.png", (cur_image*255).astype('uint8'))
 
                     if not os.path.exists("heatmaps_black"):
                         os.makedirs("heatmaps_black")
-                    cv2.imwrite(f"heatmaps_black/heatmap_episode{episode}.jpg", (cur_image_black*255).astype('uint8'))
+                    cv2.imwrite(f"heatmaps_black/heatmap_episode{episode}.png", (cur_image_black*255).astype('uint8'))
 
                     #Larger Goal
                     goal_size = agent_size
@@ -966,13 +976,13 @@ class Workspace(object):
                     #cv2.waitKey(5000)
                     if not os.path.exists("heatmaps_large"):
                         os.makedirs("heatmaps_large")
-                    cv2.imwrite(f"heatmaps_large/heatmap_episode{episode}.jpg", (cur_image_large_goal*255).astype('uint8'))
+                    cv2.imwrite(f"heatmaps_large/heatmap_episode{episode}.png", (cur_image_large_goal*255).astype('uint8'))
 
                     #cv2.imshow('Color image', cur_image_large_goal_black)
                     #cv2.waitKey(500)
                     if not os.path.exists("heatmaps_large_black"):
                         os.makedirs("heatmaps_large_black")
-                    cv2.imwrite(f"heatmaps_large_black/heatmap_episode{episode}.jpg", (cur_image_large_goal_black*255).astype('uint8'))
+                    cv2.imwrite(f"heatmaps_large_black/heatmap_episode{episode}.png", (cur_image_large_goal_black*255).astype('uint8'))
 
                     #Even Larger Goal
                     goal_size = agent_size*2
@@ -1002,13 +1012,13 @@ class Workspace(object):
                     #cv2.waitKey(5000)
                     if not os.path.exists("heatmaps_no_goal"):
                         os.makedirs("heatmaps_no_goal")
-                    cv2.imwrite(f"heatmaps_no_goal/heatmap_episode{episode}.jpg", (cur_image_no_goal*255).astype('uint8'))
+                    cv2.imwrite(f"heatmaps_no_goal/heatmap_episode{episode}.png", (cur_image_no_goal*255).astype('uint8'))
 
                     #cv2.imshow('Color image', cur_image_largest_goal_black)
                     #cv2.waitKey(500)
                     if not os.path.exists("heatmaps_largest_black"):
                         os.makedirs("heatmaps_largest_black")
-                    cv2.imwrite(f"heatmaps_largest_black/heatmap_episode{episode}.jpg", (cur_image_largest_goal_black*255).astype('uint8'))
+                    cv2.imwrite(f"heatmaps_largest_black/heatmap_episode{episode}.png", (cur_image_largest_goal_black*255).astype('uint8'))
 
                     #next_goal = self.env.goal.copy() if at the end saves with current goal else saves with the next goal
 
@@ -1147,11 +1157,11 @@ class Workspace(object):
 
                         if not os.path.exists("heatmaps_yz"):
                             os.makedirs("heatmaps_yz")
-                        cv2.imwrite(f"heatmaps_yz/heatmap_yz_episode{episode}.jpg", (cur_image_yz*255).astype('uint8'))
+                        cv2.imwrite(f"heatmaps_yz/heatmap_yz_episode{episode}.png", (cur_image_yz*255).astype('uint8'))
 
                         if not os.path.exists("heatmaps_yz_black"):
                             os.makedirs("heatmaps_yz_black")
-                        cv2.imwrite(f"heatmaps_yz_black/heatmap_episode{episode}.jpg", (cur_image_yz_black*255).astype('uint8'))
+                        cv2.imwrite(f"heatmaps_yz_black/heatmap_episode{episode}.png", (cur_image_yz_black*255).astype('uint8'))
 
                         #Larger Goal
                         goal_size = agent_size
@@ -1182,13 +1192,13 @@ class Workspace(object):
                         #cv2.waitKey(5000)
                         if not os.path.exists("heatmaps_yz_large"):
                             os.makedirs("heatmaps_yz_large")
-                        cv2.imwrite(f"heatmaps_yz_large/heatmap_episode{episode}.jpg", (cur_image_yz_large_goal*255).astype('uint8'))
+                        cv2.imwrite(f"heatmaps_yz_large/heatmap_episode{episode}.png", (cur_image_yz_large_goal*255).astype('uint8'))
 
                         #cv2.imshow('Color image', cur_image_yz_large_goal_black)
                         #cv2.waitKey(500)
                         if not os.path.exists("heatmaps_yz_large_black"):
                             os.makedirs("heatmaps_yz_large_black")
-                        cv2.imwrite(f"heatmaps_yz_large_black/heatmap_episode{episode}.jpg", (cur_image_yz_large_goal_black*255).astype('uint8'))
+                        cv2.imwrite(f"heatmaps_yz_large_black/heatmap_episode{episode}.png", (cur_image_yz_large_goal_black*255).astype('uint8'))
 
                         #Even Larger Goal
                         goal_size = agent_size*2
@@ -1218,13 +1228,13 @@ class Workspace(object):
                         #cv2.waitKey(5000)
                         if not os.path.exists("heatmaps_yz_no_goal"):
                             os.makedirs("heatmaps_yz_no_goal")
-                        cv2.imwrite(f"heatmaps_yz_no_goal/heatmap_episode{episode}.jpg", (cur_image_yz_no_goal*255).astype('uint8'))
+                        cv2.imwrite(f"heatmaps_yz_no_goal/heatmap_episode{episode}.png", (cur_image_yz_no_goal*255).astype('uint8'))
 
                         #cv2.imshow('Color image', cur_image_yz_largest_goal_black)
                         #cv2.waitKey(500)
                         if not os.path.exists("heatmaps_yz_largest_black"):
                             os.makedirs("heatmaps_yz_largest_black")
-                        cv2.imwrite(f"heatmaps_yz_largest_black/heatmap_episode{episode}.jpg", (cur_image_yz_largest_goal_black*255).astype('uint8'))
+                        cv2.imwrite(f"heatmaps_yz_largest_black/heatmap_episode{episode}.png", (cur_image_yz_largest_goal_black*255).astype('uint8'))
 
                         #next_goal = self.env.goal.copy() if at the end saves with current goal else saves with the next goal
 
@@ -1301,7 +1311,7 @@ class Workspace(object):
                                             if goal_coordinate[1] >= self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[1]:
                                                 goal_coordinate[1] = self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[1] - 0.02
                                     goal_coordinates.append(goal_coordinate)
-                                    selected_images.append(f"output{i}.jpg")
+                                    selected_images.append(f"output{i}.png")
                                 i += 1
                             if not goal_coordinates:
                                 print("No goals detected, running inference again.")
@@ -1355,8 +1365,8 @@ class Workspace(object):
                                         goal_coordinate[2] = self.uniform_goal_sampler.UPPER_CONTEXT_BOUNDS[2] - 0.002
     
                                 goal_coordinates.append(goal_coordinate)
-                                selected_images_xy.append(f"output{i}.jpg")
-                                selected_images_yz.append(f"output{i}.jpg")
+                                selected_images_xy.append(f"output{i}.png")
+                                selected_images_yz.append(f"output{i}.png")
                                 i += 1
                             if not goal_coordinates:
                                 print("No goals detected, running inference again.")
@@ -1391,12 +1401,12 @@ class Workspace(object):
                         optimal_goal = np.random.choice(aim_output, p = probabilities)
                         optimal_goal_index = np.argmax(aim_output==optimal_goal)
 
-                        #print(f"For episode {episode} Optimal goal is output{optimal_goal_index}.jpg with coordinate {goal_candidates[optimal_goal_index]}")
-                        if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
-                            os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images_xy[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
-                            os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images_yz[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
+                        #print(f"For episode {episode} Optimal goal is output{optimal_goal_index}.png with coordinate {goal_candidates[optimal_goal_index]}")
+                        if self.cfg.env in ['sawyer_peg_pick_and_place']:
+                            os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images_xy[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.png")
+                            os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images_yz[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.png")
                         else:
-                            os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
+                            os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.png")
                         inpaint_goal = goal_candidates[optimal_goal_index]
                     elif self.cfg.use_inpainting_q and not self.cfg.use_inpainting_aim:
                         goal_candidates = np.array(goal_coordinates)
@@ -1443,11 +1453,11 @@ class Workspace(object):
                             #print("Probabilities",probabilities)
                             optimal_goal = np.random.choice(Q_means, p = probabilities)
                             optimal_goal_index = np.argmax(Q_means==optimal_goal)
-                            if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
-                                os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images_xy[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
-                                os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images_yz[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
+                            if self.cfg.env in ['sawyer_peg_pick_and_place']:
+                                os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images_xy[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.png")
+                                os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images_yz[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.png")
                             else:
-                                os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
+                                os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.png")
                             inpaint_goal = goal_candidates[optimal_goal_index]
                         elif self.cfg.use_inpainting_q_initial:
                             cur_obs_list = []
@@ -1493,11 +1503,11 @@ class Workspace(object):
                             #print("Probabilities",probabilities)
                             optimal_goal = np.random.choice(Q_means, p = probabilities)
                             optimal_goal_index = np.argmax(Q_means==optimal_goal)
-                            if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
-                                os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images_xy[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
-                                os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images_yz[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
+                            if self.cfg.env in ['sawyer_peg_pick_and_place']:
+                                os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images_xy[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.png")
+                                os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images_yz[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.png")
                             else:
-                                os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
+                                os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.png")
                             inpaint_goal = goal_candidates[optimal_goal_index]
 
                         elif self.cfg.use_inpainting_q_all:
@@ -1552,11 +1562,11 @@ class Workspace(object):
                             #print("Probabilities",probabilities)
                             optimal_goal = np.random.choice(Q_means, p = probabilities)
                             optimal_goal_index = np.argmax(Q_means==optimal_goal)
-                            if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
-                                os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images_xy[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
-                                os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images_yz[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
+                            if self.cfg.env in ['sawyer_peg_pick_and_place']:
+                                os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images_xy[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.png")
+                                os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images_yz[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.png")
                             else:
-                                os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
+                                os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.png")
                             inpaint_goal = goal_candidates[optimal_goal_index]
                         
                     elif self.cfg.use_inpainting_q and self.cfg.use_inpainting_aim:
@@ -1631,11 +1641,11 @@ class Workspace(object):
                         #print("Probabilities",probabilities)
                         optimal_goal = np.random.choice(Q_means, p = probabilities)
                         optimal_goal_index = np.argmax(Q_means==optimal_goal)
-                        if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
-                            os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images_xy[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.jpg")
-                            os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images_yz[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.jpg")
+                        if self.cfg.env in ['sawyer_peg_pick_and_place']:
+                            os.rename(f"inpaint_results_xy/episode_{episode}/{selected_images_xy[optimal_goal_index]}",f"inpaint_results_xy/episode_{episode}/selected.png")
+                            os.rename(f"inpaint_results_yz/episode_{episode}/{selected_images_yz[optimal_goal_index]}",f"inpaint_results_yz/episode_{episode}/selected.png")
                         else:
-                            os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.jpg")
+                            os.rename(f"inpaint_results/episode_{episode}/{selected_images[optimal_goal_index]}",f"inpaint_results/episode_{episode}/selected.png")
                         inpaint_goal = goal_candidates[optimal_goal_index]
 
 
@@ -1707,7 +1717,7 @@ class Workspace(object):
                                   
 
                     ax1.legend(loc ="best") # 'upper right' # , prop={'size': 20}          
-                    plt.savefig(self.eval_video_recorder.save_dir+'/curriculum_goals_'+str(self.step)+'.jpg')
+                    plt.savefig(self.eval_video_recorder.save_dir+'/curriculum_goals_'+str(self.step)+'.png')
                     plt.close()
                 
                 if self.cfg.use_residual_randomwalk and (self.randomwalk_buffer.idx > 128 or self.randomwalk_buffer.full):
@@ -1745,7 +1755,7 @@ class Workspace(object):
                     
 
                     ax1.legend(loc ="best") # 'upper right' # , prop={'size': 20}          
-                    plt.savefig(self.eval_video_recorder.save_dir+'/randomwalk_goalandstates_'+str(self.step)+'.jpg')
+                    plt.savefig(self.eval_video_recorder.save_dir+'/randomwalk_goalandstates_'+str(self.step)+'.png')
                     plt.close()
                     
 
@@ -1784,7 +1794,7 @@ class Workspace(object):
                         self.logger.log('train/'+key, val, self.step)
             
 
-            #numpy_array_container.append(obs)
+            trajectories_array_container.append(obs)
 
             next_obs, reward, done, info = self.env.step(action)
             
@@ -1923,9 +1933,11 @@ class Workspace(object):
                     info['is_success'] = self.env.original_goal_success
 
                     if self.cfg.trajectory_save:
-                        np.save(self.trajectory_dir+ "/" +str(self.step)+".npy",np.array(numpy_array_container))
-                        np.save(self.trajectory_dir + "/generated_curriculum_points" + str(self.step) + ".npy", np.array(generated_curriculum_points))
-                        numpy_array_container = []
+                        if not os.path.exists("trajectories"):
+                            os.makedirs("trajectories")
+                        np.save("trajectories/trajectory_" +str(self.step)+".npy",np.array(trajectories_array_container))
+                        np.save("trajectories/generated_curriculum_points_" + str(self.step) + ".npy", np.array(generated_curriculum_points))
+                        trajectories_array_container = []
                         generated_curriculum_points = []
 
 @hydra.main(config_path='./config', config_name='config_outpace.yaml')

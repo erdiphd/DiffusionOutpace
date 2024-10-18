@@ -51,7 +51,7 @@ def inpaint_img(model, img, id, episode, save):
 
     # save conditional image used a inference input
     cond_image_np = tensor2img(cond_image)
-    #Image.fromarray(cond_image_np).save("./result/cond_image.jpg")
+    #Image.fromarray(cond_image_np).save("./result/cond_image.png")
 
     # set device
     cond_image = set_device(cond_image)
@@ -72,14 +72,14 @@ def inpaint_img(model, img, id, episode, save):
     output_img = output.detach().float().cpu()
     #for i in range(visuals.shape[0]):
     #    img = tensor2img(visuals[i].detach().float().cpu())
-    #    Image.fromarray(img).save(f"./result/process_{i}.jpg")
+    #    Image.fromarray(img).save(f"./result/process_{i}.png")
 
-    # save output (output should be the same as last process_{i}.jpg)
+    # save output (output should be the same as last process_{i}.png)
     img = tensor2img(output_img)
     if save:
         if not os.path.exists(f"./inpaint_results/episode_{episode}/"):
             os.makedirs(f"./inpaint_results/episode_{episode}/")
-        Image.fromarray(img).save(f"./inpaint_results/episode_{episode}/output{id}.jpg")
+        Image.fromarray(img).save(f"./inpaint_results/episode_{episode}/output{id}.png")
     return img
 
 def inpaint_list(model, tf_images, episode, save):
@@ -145,7 +145,7 @@ def main():
     tf_images = []
     for file in os.listdir(input_images_pth):
         filename = os.fsdecode(file)
-        if filename.endswith(".jpg"):
+        if filename.endswith(".png"):
             img_pillow = Image.open(os.path.join(input_images_pth, filename)).convert('RGB')
             img = tfs(img_pillow)
             tf_images.append(img)
@@ -177,7 +177,7 @@ def main():
         cond_imgs.append(cond_image)
         # save conditional image used a inference input
         #cond_image_np = tensor2img(cond_image)
-        #Image.fromarray(cond_image_np).save("./result/cond_image.jpg")
+        #Image.fromarray(cond_image_np).save("./result/cond_image.png")
 
     masks = torch.stack(masks, dim = 0)
     cond_imgs = torch.stack(cond_imgs, dim = 0)
@@ -200,7 +200,7 @@ def main():
         output_imgs = output.detach().float().cpu()
         #for i in range(visuals.shape[0]):
         #    img = tensor2img(visuals[i].detach().float().cpu())
-        #    Image.fromarray(img).save(f"./result/process_{i}.jpg")
+        #    Image.fromarray(img).save(f"./result/process_{i}.png")
     print(output_imgs.shape)
     id = 0
     episode = "test"
@@ -209,9 +209,9 @@ def main():
 
         if not os.path.exists(f"./inpaint_results/episode_{episode}/"):
             os.makedirs(f"./inpaint_results/episode_{episode}/")
-        Image.fromarray(img).save(f"./inpaint_results/episode_{episode}/output{id}.jpg")
+        Image.fromarray(img).save(f"./inpaint_results/episode_{episode}/output{id}.png")
         id += 1
-        # save output (output should be the same as last process_{i}.jpg)
+        # save output (output should be the same as last process_{i}.png)
 
 def single_img(img,save=False,save_path="./inpaint_results/",model_pth = "/home/faruk/Palette-Image-to-Image-Diffusion-Models/experiments/inpainting_u_maze_64_path_oriented/checkpoint/300_Network.pth", beta_schedule_n_steps = 1000):
 
@@ -316,7 +316,7 @@ def single_img(img,save=False,save_path="./inpaint_results/",model_pth = "/home/
 
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
-            Image.fromarray(img).save(save_path + f"output{id}.jpg")
+            Image.fromarray(img).save(save_path + f"output{id}.png")
             id += 1
 
     return output_imgs
