@@ -1233,16 +1233,16 @@ class Workspace(object):
                 if self.cfg.use_inpainting:
                     cur_model_dir = ""
                     if self.cfg.env in ['AntMazeSmall-v0', 'PointUMaze-v0']:
-                        cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'palette/experiments/inpainting_u_maze_64_path_oriented/checkpoint/300_Network.pth')
+                        cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'weights/PointUMaze/300_Network.pth')
                     elif self.cfg.env in ['sawyer_peg_pick_and_place']:
-                        cur_model_dir_xy = os.path.join(os.path.abspath(os.path.dirname(__file__)),'palette/experiments/inpainting_sawyer_pick_place_xy_64_path_oriented/checkpoint/300_Network.pth')
-                        cur_model_dir_yz = os.path.join(os.path.abspath(os.path.dirname(__file__)),'palette/experiments/inpainting_sawyer_pick_place_yz_64_path_oriented/checkpoint/300_Network.pth')
+                        cur_model_dir_xy = os.path.join(os.path.abspath(os.path.dirname(__file__)),'weights/sawyer_peg_pick_and_place_xy/300_Network.pth')
+                        cur_model_dir_yz = os.path.join(os.path.abspath(os.path.dirname(__file__)),'weights/sawyer_peg_pick_and_place_yz/300_Network.pth')
                     elif self.cfg.env in ['sawyer_peg_push']:
-                        cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'palette/experiments/inpainting_sawyer_push_path_oriented/checkpoint/300_Network.pth')       
+                        cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'weights/sawyer_peg_push/300_Network.pth')       
                     elif self.cfg.env == "PointSpiralMaze-v0":
-                        cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'palette/experiments/inpainting_spiral_maze_64_path_oriented/checkpoint/300_Network.pth')       
+                        cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'weights/PointSpiralMaze/300_Network.pth')       
                     elif self.cfg.env in ["PointNMaze-v0"]:
-                        cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'palette/experiments/inpainting_n_maze_64_path_oriented/checkpoint/300_Network.pth')       
+                        cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'weights/PointNMaze/300_Network.pth')       
                         
                     if not os.path.exists(f"inpaint_results/episode_{episode}") and self.cfg.env not in ['sawyer_peg_pick_and_place'] :
                         os.makedirs(f"inpaint_results/episode_{episode}")
