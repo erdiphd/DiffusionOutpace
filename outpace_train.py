@@ -35,6 +35,8 @@ from hgg.hgg import goal_distance
 from visualize.visualize_2d import *
 torch.backends.cudnn.benchmark = True
 
+from scipy import spatial
+
 def softmax(x):
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum()
@@ -1904,11 +1906,24 @@ class Workspace(object):
                             elif self.cfg.env in [  'sawyer_peg_push']:
                                 assert self.cfg.randomwalk_random_noise <= 0.2
                                 noise[2] = 0
-                            residual_goal = self.env.convert_obs_to_dict(obs)['achieved_goal'] + noise
+
+                            if self.cfg.use_inpainting:
+                                #print(goal_candidates.shape) #set residual goal to this?
+                                #print(goal_candidates)
+                                #print(self.env.convert_obs_to_dict(obs)['achieved_goal'].shape)
+                                #print(self.env.convert_obs_to_dict(obs)['achieved_goal'])
+
+                                closest_point = goal_candidates[spatial.KDTree(goal_candidates).query(self.env.convert_obs_to_dict(obs)['achieved_goal'])[1]]
+                                #print(closest_point)
+                                #print(closest_point+noise)
+                                residual_goal = closest_point + noise
+                            else:
+                                residual_goal = self.env.convert_obs_to_dict(obs)['achieved_goal'] + noise
                             
                         self.env.reset_goal(residual_goal)
                         obs[-self.env.goal_dim:] = residual_goal.copy()
                 else:
+                    #print("achieved_goal", self.env.convert_obs_to_dict(obs)['achieved_goal'])
                     if info.get('is_current_goal_success'): #succeed original goal
                         self.env.original_goal_success = True
                         if (self.cfg.use_uncertainty_for_randomwalk not in [None, 'none', 'None']) and self.step > self.get_agent().meta_test_sample_size:
@@ -1918,14 +1933,25 @@ class Workspace(object):
                                 uncertainty_mode = self.cfg.use_uncertainty_for_randomwalk)
                         else:
                             noise = np.random.uniform(low=-self.cfg.randomwalk_random_noise, high=self.cfg.randomwalk_random_noise, size=self.env.goal_dim)
-
                             if self.cfg.env in [   'sawyer_peg_pick_and_place']:
                                 assert self.cfg.randomwalk_random_noise <= 0.2
                                 pass
                             elif self.cfg.env in [  'sawyer_peg_push']:
                                 assert self.cfg.randomwalk_random_noise <= 0.2
                                 noise[2] = 0
-                            residual_goal = self.env.convert_obs_to_dict(obs)['achieved_goal'] + noise
+
+                            if self.cfg.use_inpainting:
+                                #print(goal_candidates.shape) #set residual goal to this?
+                                #print(goal_candidates)
+                                #print(self.env.convert_obs_to_dict(obs)['achieved_goal'].shape)
+                                #print(self.env.convert_obs_to_dict(obs)['achieved_goal'])
+
+                                closest_point = goal_candidates[spatial.KDTree(goal_candidates).query(self.env.convert_obs_to_dict(obs)['achieved_goal'])[1]]
+                                #print(closest_point)
+                                #print(closest_point+noise)
+                                residual_goal = closest_point  + noise
+                            else:
+                                residual_goal = self.env.convert_obs_to_dict(obs)['achieved_goal'] + noise
                         self.env.reset_goal(residual_goal)
                         obs[-self.env.goal_dim:] = residual_goal.copy()
                 if (episode_step) % self.max_episode_timesteps == 0: #done only horizon ends
