@@ -613,6 +613,7 @@ class Workspace(object):
         observe_list = []
         trajectories_array_container = []
         generated_curriculum_points = []
+        printed = False
 
         while self.step <= self.cfg.num_train_steps:
             
@@ -1912,7 +1913,9 @@ class Workspace(object):
                                 #print(goal_candidates)
                                 #print(self.env.convert_obs_to_dict(obs)['achieved_goal'].shape)
                                 #print(self.env.convert_obs_to_dict(obs)['achieved_goal'])
-
+                                if not printed:
+                                    print("Using inpainting goals for randomwalk")
+                                    printed = True
                                 closest_point = goal_candidates[spatial.KDTree(goal_candidates).query(self.env.convert_obs_to_dict(obs)['achieved_goal'])[1]]
                                 #print(closest_point)
                                 #print(closest_point+noise)
@@ -1945,7 +1948,9 @@ class Workspace(object):
                                 #print(goal_candidates)
                                 #print(self.env.convert_obs_to_dict(obs)['achieved_goal'].shape)
                                 #print(self.env.convert_obs_to_dict(obs)['achieved_goal'])
-
+                                if not printed:
+                                    print("Using inpainting goals for randomwalk")
+                                    printed = True
                                 closest_point = goal_candidates[spatial.KDTree(goal_candidates).query(self.env.convert_obs_to_dict(obs)['achieved_goal'])[1]]
                                 #print(closest_point)
                                 #print(closest_point+noise)
