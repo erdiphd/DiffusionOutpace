@@ -8,7 +8,7 @@ env: ???
 action_repeat: 1
 seed: 1 #All trainings are done in seed 1, will test with a different seed as well
 # eval
-eval_frequency: 1000 #1000 for u maze #10000 #for spiral and n maze sawyer push
+eval_frequency: 10000 #1000 for u maze #10000 #for spiral and n maze sawyer push
 train_episode_video_freq : 100
 num_eval_episodes: 10
 # misc
@@ -37,7 +37,7 @@ normalize_nml_obs : false
 normalize_f_obs : true #true
 normalize_rl_obs : true 
 
-num_train_steps: 40000 #40000 for U #200000 for N #400000 for spiral these are for default #800000 for sawyer push
+num_train_steps: 600000 #40000 for U #300000 for N #600000 for spiral these are for default #800000 for sawyer push
 num_random_steps: ??? 
 num_seed_steps : ??? 
 replay_buffer_capacity: 3000000
@@ -53,15 +53,15 @@ curriculum_buffer : default # aim
 
 
 
-use_residual_randomwalk : false #will try for false
-use_uncertainty_for_randomwalk : 'nml' #'nml' 'f' 'none'
+use_residual_randomwalk : true #will try for false
+use_uncertainty_for_randomwalk : 'none' #'nml' 'f' 'none'
 randomwalk_num_candidate : 10 
 randomwalk_random_noise : ??? 
 randomwalk_method : 'randgoal' #'rand_action'
 
 
-use_meta_nml : true 
-use_hgg : true #false
+use_meta_nml : false
+use_hgg : false #false
 
 render_images : true
 

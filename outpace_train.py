@@ -1255,8 +1255,10 @@ class Workspace(object):
                     elif self.cfg.env == "PointSpiralMaze-v0":
                         cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'weights/PointSpiralMaze/300_Network.pth')       
                     elif self.cfg.env in ["PointNMaze-v0"]:
-                        cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'weights/PointNMaze/300_Network.pth')       
-                        
+                        #cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'weights/PointNMaze/300_Network.pth')       
+                        cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'weights/PointNMaze_old/300_Network.pth')
+
+
                     if not os.path.exists(f"inpaint_results/episode_{episode}") and self.cfg.env not in ['sawyer_peg_pick_and_place'] :
                         os.makedirs(f"inpaint_results/episode_{episode}")
 

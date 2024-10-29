@@ -1,0 +1,7 @@
+#!/bin/bash
+
+CUDA_VISIBLE_DEVICES=0 python outpace_train.py env=PointSpiralMaze-v0 aim_disc_replay_buffer_capacity=20000 aim_discriminator_cfg.lambda_coef=50 seed=1 use_inpainting_aim=false use_inpainting_q=false use_inpainting_q_all=false
+CUDA_VISIBLE_DEVICES=0 python outpace_train.py env=PointSpiralMaze-v0 aim_disc_replay_buffer_capacity=20000 aim_discriminator_cfg.lambda_coef=50 seed=2 use_inpainting_aim=false use_inpainting_q=false use_inpainting_q_all=false
+CUDA_VISIBLE_DEVICES=0 python outpace_train.py env=PointSpiralMaze-v0 aim_disc_replay_buffer_capacity=20000 aim_discriminator_cfg.lambda_coef=50 seed=3 use_inpainting_aim=false use_inpainting_q=false use_inpainting_q_all=false
+CUDA_VISIBLE_DEVICES=0 python outpace_train.py env=PointSpiralMaze-v0 aim_disc_replay_buffer_capacity=20000 aim_discriminator_cfg.lambda_coef=50 seed=4 use_inpainting_aim=false use_inpainting_q=false use_inpainting_q_all=false
+CUDA_VISIBLE_DEVICES=0 python outpace_train.py env=PointSpiralMaze-v0 aim_disc_replay_buffer_capacity=20000 aim_discriminator_cfg.lambda_coef=50 seed=5 use_inpainting_aim=false use_inpainting_q=false use_inpainting_q_all=false
