@@ -1,5 +1,5 @@
 {
-    "name": "inpainting_u_maze_64_hybrid", // experiments name
+    "name": "inpainting_u_maze_64", // experiments name
     "gpu_ids": [0], // gpu ids list, default is single 0
     "seed" : 42, // random seed, seed <0 represents randomization not used 
     "finetune_norm": false, // find the parameters to optimize
@@ -19,10 +19,10 @@
             "which_dataset": {  // import designated dataset using arguments 
                 "name": ["data.dataset", "InpaintDataset"], // import Dataset() class / function(not recommend) from data.dataset.py (default is [data.dataset.py])
                 "args":{ // arguments to initialize dataset
-                    "data_root": "/home/faruk/Palette-Image-to-Image-Diffusion-Models/dataset/train_small.flist",
+                    "data_root": "dataset/train.flist", //might need full directory if it does not work
                     "data_len": -1,
                     "mask_config": {
-                        "mask_mode": "goal_oriented"
+                        "mask_mode": "path_oriented"
                     },
                     "image_size": [64,64] 
                 } 
@@ -49,9 +49,9 @@
             "which_dataset": {
                 "name": "InpaintDataset", // import Dataset() class / function(not recommend) from default file
                 "args":{
-                    "data_root": "/home/faruk/Palette-Image-to-Image-Diffusion-Models/dataset/test.flist",
+                    "data_root": "dataset/test.flist",
                     "mask_config": {
-                        "mask_mode": "irregular"
+                        "mask_mode": "path_oriented"
                     },
                     "image_size": [64,64] 
                 }
