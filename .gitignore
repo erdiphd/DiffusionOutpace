@@ -14,4 +14,8 @@ Metaworld/
 expl_agent*
 runs/
 test_images/
-run_sawyer_pick_place_and_diffusion.sh
+palette/inpaint_results
+palette/save_masks.py
+weights/
+palette/test_imgs
+palette/config/*
