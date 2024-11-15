@@ -73,7 +73,7 @@ trajectory_save : true
 #Data collection end
 
 #Diffusion goal generation begin
-use_inpainting : true #false for data collection, in all methods are false, it defaults to mean
+use_inpainting : true #false for data collection, if true and all methods are false, it defaults to mean
 use_inpainting_aim: true #Use aim for goal selection
 use_inpainting_q: false #Use Q function for goal selection
 use_inpainting_q_final: false #Use final state/action for Q function

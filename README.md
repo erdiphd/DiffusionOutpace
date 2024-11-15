@@ -1,22 +1,13 @@
 # DiffusionOutpace
 
-This is an implementation of OUTPACE with a diffusion based inpainting (Palette) for curriculum goal generation. It is implemented as a master thesis for TUM. Below are the setup instructions for the outpace. Palette also uses the same conda environment with outpace, so there is no need to install anything additional.
-
-# OUTPACE
-
-This is a Pytorch implementation of **OUTPACE** from our paper: "Outcome-directed Reinforcement Learning by Uncertainty & Temporal Distance-Aware Curriculum Goal Generation" (ICLR 2023 Spotlight)
-
-By [Daesol Cho*](https://dscho1234.github.io), [Seungjae Lee*](https://jaylee0301.github.io/) (*Equally contributed), and H. Jin Kim
-
-A link to our paper can be found on [arXiv](https://arxiv.org/abs/2301.11741), and our project website can be found on [here](https://sjlee.cc/outpace).
-
-<img width="100%" src="https://user-images.githubusercontent.com/30570922/215093920-a38380c2-d504-4dc5-9dd1-8b099cf51dfe.jpg"/>
+This is an implementation of OUTPACE with a diffusion based inpainting (Palette) for curriculum goal generation. It is implemented as a master thesis for TUM. Below are the setup instructions for our method, which is the same OUTPACE. Palette also uses the same conda environment with outpace, so there is no need to install anything additional. The method is split into three steps, each will be detailed on how to replicate after setup instructions.
 
 ## Setup Instructions
-0. Create a conda environment:
+0. Create a conda environment, pip is seperated to track the installed packages, can be commented back in outpace.yml:
 ```
 conda env create -f outpace.yml
 conda activate outpace
+pip install -r outpace_requirements.txt
 ```
 
 1. Add the necessary paths:
@@ -31,7 +22,7 @@ cd ..
 chmod +x install.sh
 ./install.sh
 ```
-3. Install [pytorch](https://pytorch.org/get-started/locally/) (use tested on pytorch 1.12.1 with CUDA 11.3)
+3. Install [pytorch](https://pytorch.org/get-started/locally/)
 
 
 4. Set config_path:
@@ -39,22 +30,23 @@ see config/paths/template.yaml
 
 5. To run robot arm environment install [metaworld](https://github.com/rlworkgroup/metaworld):
 ```
-pip install git+https://github.com/rlworkgroup/metaworld.git@master#egg=metaworld
+git clone https://github.com/Farama-Foundation/Metaworld.git
+git reset --hard 84bda2c
+pip install -e .
 ```
-6. Create a new directory called "weights" and create 6 subdirectories under it, called "PointUMaze","PointNMaze","PointSpiralMaze","sawyer_peg_push","sawyer_peg_pick_and_place_xy","sawyer_peg_pick_and_place_yz". Put the palette weights (300_Network.pth) for every weight to their respective directory.
+6. a. Create a new directory called "weights" and create 6 subdirectories under it, called "PointUMaze","PointNMaze","PointSpiralMaze","sawyer_peg_push","sawyer_peg_pick_and_place_xy","sawyer_peg_pick_and_place_yz". Put the palette weights (300_Network.pth) for every weight to their respective directory.
+
+    b. Alternatively, the weights that are used during this thesis are uploaded [here](https://drive.google.com/file/d/1-NZP3ivtMJnOrA00uEOr3jzbrScEcP1W/view). Simply unzip it and arrange it to the folder structure described above.
 
 
 ## Usage
-### Training and Evaluation
+### Data Collection for Diffusion Model and Diffusion Based Curriculum Learning
 
-ADD --config-name={config_name} to run with a different config than config_outpace.yaml. Useful for multiple testing in the same dir.
-Name of the saved dir is also under hydra in config file, just update it accordingly. Also add seed=i to the run command where i={1,...,5} for testing.
-
-
+Update the config/config_outpace.yaml for desired method (data collection or diffusion currriculum learning). The related flags are commented in the config file. For reference, the current configuration is for training Point-U Maze with diffusion goal candidate generation and AIM goal selection.
 
 PointUMaze-v0
 ```
-CUDA_VISIBLE_DEVICES=0 python outpace_train.py env=PointUMaze-v0 aim_disc_replay_buffer_capacity=10000 save_buffer=true adam_eps=0.01
+CUDA_VISIBLE_DEVICES=0 python outpace_train.py env=PointUMaze-v0 aim_disc_replay_buffer_capacity=10000 adam_eps=0.01
 ```
 PointNMaze-v0
 ```
@@ -62,11 +54,7 @@ CUDA_VISIBLE_DEVICES=0 python outpace_train.py env=PointNMaze-v0 aim_disc_replay
 ```
 PointSpiralMaze-v0
 ```
-CUDA_VISIBLE_DEVICES=0 python outpace_train.py env=PointSpiralMaze-v0 aim_disc_replay_buffer_capacity=20000 save_buffer=true aim_discriminator_cfg.lambda_coef=50
-```
-AntMazeSmall-v0
-```
-CUDA_VISIBLE_DEVICES=0 python outpace_train.py env=AntMazeSmall-v0 aim_disc_replay_buffer_capacity=50000
+CUDA_VISIBLE_DEVICES=0 python outpace_train.py env=PointSpiralMaze-v0 aim_disc_replay_buffer_capacity=20000 aim_discriminator_cfg.lambda_coef=50
 ```
 sawyer_peg_pick_and_place
 ```
@@ -77,19 +65,10 @@ sawyer_peg_push
 CUDA_VISIBLE_DEVICES=0 python outpace_train.py env=sawyer_peg_push aim_disc_replay_buffer_capacity=30000 normalize_nml_obs=true normalize_f_obs=false normalize_rl_obs=false adam_eps=0.01 hgg_kwargs.match_sampler_kwargs.hgg_L=0.5
 ```
 
-Our code sourced and modified from official implementation of [MURAL](https://github.com/kevintli/mural), [AIM](https://github.com/iDurugkar/adversarial-intrinsic-motivation), and [HGG](https://github.com/Stilwell-Git/Hindsight-Goal-Generation) Algorithm. Also, we utilize [mujoco-maze](https://github.com/kngwyu/mujoco-maze) and [metaworld](https://github.com/rlworkgroup/metaworld) to validate our proposed method.
+For the training of the diffusion model, refer to the README.md in the folder "palette".
 
+The evaluation results (the .csv files) can be found under "thesis results".
 
+# Acknowledgements
 
-## Citation
-If you use this repo in your research, please consider citing the paper as follows.
-```
-@inproceedings{choandlee2023outcome,
-  title={Outcome-directed Reinforcement Learning by Uncertainty \& Temporal Distance-Aware Curriculum Goal Generation},
-  author={Cho, Daesol and Lee, Seungjae and Kim, H Jin},
-  booktitle={Proceedings of International Conference on Learning Representations},
-  pages={},
-  year={2023},
-  organization={}
-}
-```
+Our code is sourced and modified from the official implementation of [OUTPACE](https://github.com/jayLEE0301/outpace_official) and the unofficial implementation of [Palette](https://github.com/Janspiry/Palette-Image-to-Image-Diffusion-Models). Also, [mujoco-maze](https://github.com/kngwyu/mujoco-maze) and [metaworld](https://github.com/Farama-Foundation/Metaworld) are used to create the environments.
