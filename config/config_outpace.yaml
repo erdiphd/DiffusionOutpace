@@ -6,9 +6,9 @@ defaults:
 # env
 env: ???
 action_repeat: 1
-seed: 1 #All trainings are done in seed 1, will test with a different seed as well
+seed: 1 #All trainings are done in seed 1 by default update if needed
 # eval
-eval_frequency: 10000 #1000 for u maze #10000 #for spiral and n maze sawyer push
+eval_frequency: 1000 #1000 for U-Maze #10000 for others
 train_episode_video_freq : 100
 num_eval_episodes: 10
 # misc
@@ -37,7 +37,7 @@ normalize_nml_obs : false
 normalize_f_obs : true #true
 normalize_rl_obs : true 
 
-num_train_steps: 600000 #40000 for U #300000 for N #600000 for spiral these are for default #800000 for sawyer push
+num_train_steps: 40000 #40000 for U-Maze #300000 for N-Maze #600000 for Spiral-Maze #800000 for Sawyer-Peg variants
 num_random_steps: ??? 
 num_seed_steps : ??? 
 replay_buffer_capacity: 3000000
@@ -53,27 +53,42 @@ curriculum_buffer : default # aim
 
 
 
-use_residual_randomwalk : true #will try for false
-use_uncertainty_for_randomwalk : 'none' #'nml' 'f' 'none'
+use_residual_randomwalk : true #
+use_uncertainty_for_randomwalk : 'none' #'nml' for OUTPACE data collection 'none' for our method
 randomwalk_num_candidate : 10 
 randomwalk_random_noise : ??? 
 randomwalk_method : 'randgoal' #'rand_action'
 
 
-use_meta_nml : false
-use_hgg : false #false
+use_meta_nml : false #true for OUTPACE false for our method
+use_hgg : false #true for OUTPACE false for our method
 
-render_images : true
+#Data collection begin
+render_images : true #Always true
+image_scale: 25 #For maze envs, 25, for Sawyer peg envs 250 
+agent_scale: 25 #For U-Maze and N-Maze 25, For Spiral Maze 38, fo Sawyer Peg envs 16
+z_scale: 4 #Only for Sawyer Peg Pick & Place
 
 trajectory_save : true
+#Data collection end
 
-use_inpainting : true
-use_inpainting_aim: true
-use_inpainting_q: true
-use_inpainting_q_final: false
-use_inpainting_q_initial: false
-use_inpainting_q_all: true
-beta_schedule_n_steps: 250
+#Diffusion goal generation begin
+use_inpainting : true #false for data collection, in all methods are false, it defaults to mean
+use_inpainting_aim: true #Use aim for goal selection
+use_inpainting_q: false #Use Q function for goal selection
+use_inpainting_q_final: false #Use final state/action for Q function
+use_inpainting_q_initial: false #Use initial state/action for Q function
+use_inpainting_q_all: false #Use all states/actions for Q function
+
+q_weight: 10 #for aim and q
+aim_weight: 1 #for aim and q
+
+diffusion_n_steps: 250
+diffusion_schedule: 'linear'
+diffusion_noise_min: 0.0001
+diffusion_noise_max: 0.09
+max_goal_candidates: 8
+#Diffusion goal generation end
 
 use_aim_disc_ensemble : true 
 adam_eps : 1e-8 
@@ -249,9 +264,9 @@ env_path : ${paths.default_env_path}
 hydra:
   # name: ${env}
   run: # single process        
-    dir: ${save_path_prefix}/${env}/${now:%Y.%m.%d}/${now:%H%M%S}_aim_${use_inpainting_aim}_q_${use_inpainting_q}_beta_steps_${beta_schedule_n_steps}_seed_${seed}
+    dir: ${save_path_prefix}/${env}/${now:%Y.%m.%d}/${now:%H%M%S}
 
   sweep: # multi process
-    dir: ${save_path_prefix}/${env}/${now:%Y.%m.%d}/${now:%H%M%S}_aim_${use_inpainting_aim}_q_${use_inpainting_q}_beta_steps_${beta_schedule_n_steps}_seed_${seed}
+    dir: ${save_path_prefix}/${env}/${now:%Y.%m.%d}/${now:%H%M%S}
     subdir: ${seed} 
   
