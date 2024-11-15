@@ -168,7 +168,7 @@ class Discriminator(nn.Module):
             zero = torch.zeros(size=[int(next_state_state.size(0))])
         prev_out = self(prev_state)
         next_out = self(next_state_state)
-        penalty = self.lambda_coef * torch.max(torch.abs(next_out - prev_out) - self.lipschitz_constant, zero).pow(2).mean() #paper 5.th eq mean expectation
+        penalty = self.lambda_coef * torch.max(torch.abs(next_out - prev_out) - self.lipschitz_constant, zero).pow(2).mean() #OUTPACE paper 5.th eq mean expectation
         return penalty
 
 
@@ -189,7 +189,7 @@ class Discriminator(nn.Module):
         pred_zeros = self(zeros)
         graph_penalty = self.compute_graph_pen(zeros_prev, zeros)
         min_aim_f_loss = None
-        wgan_loss = torch.mean(pred_zeros) + torch.mean(pred_ones * (-1.))                 #this addes initial part of of eq. 5
+        wgan_loss = torch.mean(pred_zeros) + torch.mean(pred_ones * (-1.))  #OUTPACE paper 5.th eq initial part
         loss = wgan_loss + graph_penalty
 
         
