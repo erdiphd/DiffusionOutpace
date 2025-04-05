@@ -5,6 +5,9 @@ from functools import partial
 import numpy as np
 from tqdm import tqdm
 from core.base_network import BaseNetwork
+import os
+from core.util import tensor2img
+from PIL import Image
 class Network(BaseNetwork):
     def __init__(self, unet, beta_schedule, module_name='sr3', **kwargs):
         super(Network, self).__init__(**kwargs)
@@ -85,16 +88,26 @@ class Network(BaseNetwork):
         return model_mean + noise * (0.5 * model_log_variance).exp()
 
     @torch.no_grad()
-    def restoration(self, y_cond, y_t=None, y_0=None, mask=None, sample_num=8):
+    def restoration(self, y_cond, y_t=None, y_0=None, mask=None, sample_num=8, episode=0):
+
         b, *_ = y_cond.shape
 
         assert self.num_timesteps > sample_num, 'num_timesteps must greater than sample_num'
         sample_inter = (self.num_timesteps//sample_num)
-        
+
         y_t = default(y_t, lambda: torch.randn_like(y_cond))
+        #y_t = torch.randn_like(y_cond)
         ret_arr = y_t
+        # if not os.path.exists("/home/erdicitymos/Desktop/DiffusionOutpace/checkpoint/diffusion/ep" + str(episode)):
+        #     os.makedirs("/home/erdicitymos/Desktop/DiffusionOutpace/checkpoint/diffusion/ep" + str(episode))
+
         for i in tqdm(reversed(range(0, self.num_timesteps)), desc='sampling loop time step', total=self.num_timesteps,leave=False):
             t = torch.full((b,), i, device=y_cond.device, dtype=torch.long)
+
+            # for mk in range(y_t.shape[0]):
+            #     j = Image.fromarray(tensor2img(y_t[mk, :, :, :].detach().cpu()), mode='RGB')
+            #     j.save("/home/erdicitymos/Desktop/DiffusionOutpace/checkpoint/diffusion/ep" + str(episode) + "/reverse_" + str(i) + "_" + str(mk) + ".jpg")
+
             y_t = self.p_sample(y_t, t, y_cond=y_cond)
             if mask is not None:
                 y_t = y_0*(1.-mask) + mask*y_t

@@ -119,7 +119,8 @@ def main():
 def single_img(img,save=False,save_path="./inpaint_results/",model_pth = "os.path.abspath(os.path.dirname(__file__)),'../weights/which_env?/300_Network.pth'",
              diffusion_n_steps = 1000, diffusion_schedule = "linear",
              diffusion_noise_min = 0.0001, diffusion_noise_max = 0.09,
-             max_goal_candidates = 8):
+             max_goal_candidates = 8,
+             episode=0):
 
     model_args = {'init_type': 'kaiming',
                 'module_name': 'guided_diffusion',
@@ -201,7 +202,7 @@ def single_img(img,save=False,save_path="./inpaint_results/",model_pth = "os.pat
     # inference
     with torch.no_grad():
         output, visuals = model.restoration(cond_imgs, y_t=cond_imgs,
-                                            y_0=gt_images, mask=masks, sample_num=8)
+                                            y_0=gt_images, mask=masks, sample_num=8, episode=episode)
         output_imgs = output.detach().float().cpu()
     
     #Save images

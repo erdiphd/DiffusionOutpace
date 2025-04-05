@@ -514,11 +514,11 @@ class Workspace(object):
                     ax4 = fig.add_subplot(4,1,4)
                     ax4.plot(timesteps, aim_disc_outputs_reverse, label = 'aim_disc_output_reverse')
                     ax4.legend(loc ='upper right')
-                    if uniform_goal:
-                        plt.savefig(self.eval_video_recorder.save_dir+'/aim_outputs_uniform_goal_'+str(self.step)+'.png')
-                    else:
-                        plt.savefig(self.eval_video_recorder.save_dir+'/aim_outputs_'+str(self.step)+'.png')
-                    plt.close()
+                    # if uniform_goal:
+                    #     plt.savefig(self.eval_video_recorder.save_dir+'/aim_outputs_uniform_goal_'+str(self.step)+'.png')
+                    # else:
+                    #     plt.savefig(self.eval_video_recorder.save_dir+'/aim_outputs_'+str(self.step)+'.png')
+                    # plt.close()
                     
                 avg_episode_reward += episode_reward
                 if uniform_goal:
@@ -722,7 +722,7 @@ class Workspace(object):
                         plt.ylim(0.2,1.0)
                     else:
                         raise NotImplementedError
-                    plt.savefig(self.train_video_recorder.save_dir+'/train_hgg_goals_episode_'+str(episode)+'.png')
+                    #plt.savefig(self.train_video_recorder.save_dir+'/train_hgg_goals_episode_'+str(episode)+'.png')
                     plt.close()
                     with open(self.train_video_recorder.save_dir+'/train_hgg_goals_episode_'+str(episode)+'.pkl', 'wb') as f:
                         pkl.dump(sampled_goals_for_vis, f)
@@ -1184,7 +1184,8 @@ class Workspace(object):
                                                         diffusion_schedule= self.cfg.diffusion_schedule,
                                                         diffusion_noise_min = self.cfg.diffusion_noise_min,
                                                         diffusion_noise_max = self.cfg.diffusion_noise_max,
-                                                        max_goal_candidates = self.cfg.max_goal_candidates
+                                                        max_goal_candidates = self.cfg.max_goal_candidates,
+                                                     episode=episode
                                                     )
                             i = 0
                             for output_img in output_imgs:
@@ -1242,7 +1243,8 @@ class Workspace(object):
                                                         diffusion_schedule= self.cfg.diffusion_schedule,
                                                         diffusion_noise_min = self.cfg.diffusion_noise_min,
                                                         diffusion_noise_max = self.cfg.diffusion_noise_max,
-                                                        max_goal_candidates = self.cfg.max_goal_candidates
+                                                        max_goal_candidates = self.cfg.max_goal_candidates,
+                                                        episode=episode
                                                     )
                             output_imgs_yz = single_img((cur_image_yz_no_goal*255).astype('uint8'),True, f"inpaint_results_yz/episode_{episode}/",
                                                         model_pth = cur_model_dir_yz,
@@ -1250,7 +1252,8 @@ class Workspace(object):
                                                         diffusion_schedule= self.cfg.diffusion_schedule,
                                                         diffusion_noise_min = self.cfg.diffusion_noise_min,
                                                         diffusion_noise_max = self.cfg.diffusion_noise_max,
-                                                        max_goal_candidates = self.cfg.max_goal_candidates
+                                                        max_goal_candidates = self.cfg.max_goal_candidates,
+                                                        episode=episode
                                                     )
                             
                             i = 0
@@ -1320,8 +1323,13 @@ class Workspace(object):
                             initial_states = np.tile(np.array([0,0]), (num_grid_point, 1))
 
                         observes = torch.as_tensor(np.concatenate([initial_states, goal_candidates], axis= -1), device = 0).float()
+                        if self.cfg.normalize_rl_obs:
+                            observes = agent.normalize_obs(observes, self.cfg.env)
+
                         aim_output = agent.aim_discriminator.forward(observes).detach().cpu().numpy().flatten()
 
+                        savedir_w_name = self.train_video_recorder.save_dir +'/'+ str(episode)
+                        aim_visualize(self,goal_candidates, agent, savedir_w_name)
                         probabilities = softmax(-1*aim_output).flatten()
                         optimal_goal = np.random.choice(aim_output, p = probabilities)
                         optimal_goal_index = np.argmax(aim_output==optimal_goal)
@@ -1432,7 +1440,9 @@ class Workspace(object):
                                 action_array = np.array(action_list)
 
                                 action_array = torch.as_tensor(np.stack(action_array,axis=0), device = 0).float()
-                                for goal_candidate in goal_candidates: 
+                                savedir_w_name = self.train_video_recorder.save_dir + '/' + str(episode)
+                                Q_visualize(self, np.array(observe_array), action_array, agent, savedir_w_name)
+                                for goal_candidate in goal_candidates:
                                     cur_observes = np.array(observe_array)
                                     for item in cur_observes: #update cur_observes with the current goal candidate
                                         if self.cfg.env in ['sawyer_peg_push'] or self.cfg.env in ['sawyer_peg_pick_and_place']:
@@ -1501,6 +1511,8 @@ class Workspace(object):
                                         item = agent.normalize_obs(item,self.cfg.env)
                                 cur_observes = torch.as_tensor(np.stack(cur_observes,axis=0), device = 0).float()
                                 inpaint_Q1,inpaint_Q2 = agent.critic(cur_observes,action_array)
+                                savedir_w_name = self.train_video_recorder.save_dir + '/' + str(episode)
+                                Q_visualize(self, np.array(observe_array), action_array, agent, savedir_w_name)
                                 cur_q_mean = np.mean(((inpaint_Q1 + inpaint_Q2)/2).detach().cpu().numpy().flatten())
                                 q_mean_list.append(cur_q_mean)
                             Q_means = np.array(q_mean_list)
@@ -1514,7 +1526,13 @@ class Workspace(object):
                             initial_states = np.tile(np.array([0,0]), (num_grid_point, 1))
 
                         observes = torch.as_tensor(np.concatenate([initial_states, goal_candidates], axis= -1), device = 0).float()
+
+                        if self.cfg.normalize_rl_obs:
+                            observes = agent.normalize_obs(observes, self.cfg.env)
                         aim_output = agent.aim_discriminator.forward(observes).detach().cpu().numpy().flatten()
+
+                        savedir_w_name = self.train_video_recorder.save_dir +'/'+ str(episode)
+                        aim_visualize(self,goal_candidates, agent, savedir_w_name)
 
                         merge_q_means_aim = self.cfg.q_weight*Q_means + self.cfg.aim_weight*((-1)*aim_output)
 
@@ -1581,7 +1599,7 @@ class Workspace(object):
                                   
 
                     ax1.legend(loc ="best") # 'upper right' # , prop={'size': 20}          
-                    plt.savefig(self.eval_video_recorder.save_dir+'/curriculum_goals_'+str(self.step)+'.png')
+                    #plt.savefig(self.eval_video_recorder.save_dir+'/curriculum_goals_'+str(self.step)+'.png')
                     plt.close()
                 
                 if self.cfg.use_residual_randomwalk and (self.randomwalk_buffer.idx > 128 or self.randomwalk_buffer.full):
@@ -1619,7 +1637,7 @@ class Workspace(object):
                     
 
                     ax1.legend(loc ="best") # 'upper right' # , prop={'size': 20}          
-                    plt.savefig(self.eval_video_recorder.save_dir+'/randomwalk_goalandstates_'+str(self.step)+'.png')
+                    #plt.savefig(self.eval_video_recorder.save_dir+'/randomwalk_goalandstates_'+str(self.step)+'.png')
                     plt.close()
                     
             # save agent periodically
