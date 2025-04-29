@@ -194,7 +194,7 @@ def aim_visualize(class_instance,goal_candidates, agent, savedir_w_name):
 
 
         c = ax.pcolormesh(pixel_positions[:, 0], pixel_positions[:, 1],
-                          aim_output_visualize.reshape(x_debug.shape[0], -1),
+                          aim_output_visualize.reshape(x_debug.shape[0], -1).T,
                           cmap='RdBu_r', alpha=0.8)
         selected_goal_pixel = cv2.perspectiveTransform(selected_goal.reshape(-1, 1, 2), M).reshape(-1, 2).flatten()
         ax.scatter(selected_goal_pixel[0], selected_goal_pixel[1], marker="*", c='black', s=15, label='goal')
@@ -207,7 +207,7 @@ def aim_visualize(class_instance,goal_candidates, agent, savedir_w_name):
         fig.savefig(f'{savedir_w_name}_ep_goal_fixed{goal_index}.png',bbox_inches='tight')
         plt.close(fig)
 
-        c2 = ax3.pcolormesh(x_debug, y_debug, aim_output_visualize.reshape(x_debug.shape[0], -1),cmap='RdBu_r', alpha=0.8)
+        c2 = ax3.pcolormesh(x_debug, y_debug, aim_output_visualize.reshape(x_debug.shape[0], -1).T,cmap='RdBu_r', alpha=0.8)
 
 
         ax3.plot(map.ox, map.oy, ".k")
@@ -225,7 +225,7 @@ def aim_visualize(class_instance,goal_candidates, agent, savedir_w_name):
     del aim_output_visualize
 
     aim_output_visualize = agent.aim_discriminator.forward(inputs_norm_tensor_tmp_initial).detach().cpu().numpy().flatten()
-    c = ax2.pcolormesh(pixel_positions[:, 0], pixel_positions[:, 1],aim_output_visualize.reshape(x_debug.shape[0], -1),
+    c = ax2.pcolormesh(pixel_positions[:, 0], pixel_positions[:, 1],aim_output_visualize.reshape(x_debug.shape[0], -1).T,
                       cmap='RdBu_r', alpha=0.8)
     initial_state_pixel = cv2.perspectiveTransform(initial_state.reshape(-1, 1, 2), M).reshape(-1, 2).flatten()
     #Initial Position scatter plot
@@ -239,7 +239,7 @@ def aim_visualize(class_instance,goal_candidates, agent, savedir_w_name):
 
     plt.close(fig2)
 
-    c2 = ax4.pcolormesh(x_debug, y_debug, aim_output_visualize.reshape(x_debug.shape[0], -1),cmap='RdBu_r', alpha=0.8)
+    c2 = ax4.pcolormesh(x_debug, y_debug, aim_output_visualize.reshape(x_debug.shape[0], -1).T,cmap='RdBu_r', alpha=0.8)
     ax4.plot(map.ox, map.oy, ".k")
     ax4.scatter(initial_state[0], initial_state[1], marker="*", c='black', s=15, label='goal')
     #ax2.imshow(background_image)
@@ -345,6 +345,7 @@ def Q_visualize(class_instance,observe_array, action_array, agent, savedir_w_nam
     critic_value_debug1, critic_value_debug2 = agent.critic(repeated_state_debug, repeated_action_debug)
     critic_value_debug = (critic_value_debug1 + critic_value_debug2)/2
     critic_value_surface = np.array(critic_value_debug.detach().cpu()).reshape(X_debug.shape)
+    critic_value_surface = critic_value_surface.T
     del critic_value_debug1
     del critic_value_debug2
     del repeated_action_debug
@@ -354,7 +355,6 @@ def Q_visualize(class_instance,observe_array, action_array, agent, savedir_w_nam
     background_image = mpimg.imread(background_image_path)
     positions = np.stack((x_debug, y_debug), axis=1)
     pixel_positions = cv2.perspectiveTransform(positions.reshape(-1, 1, 2), M).reshape(-1, 2)
-
     fig1, ax1 = plt.subplots()
     contourf = ax1.contourf(pixel_positions[:, 0], pixel_positions[:, 1], critic_value_surface, cmap='jet', alpha=0.6, levels=100)
     cbar = plt.colorbar(contourf, ax=ax1)
@@ -532,6 +532,7 @@ def visualize_discriminator2(normalizer, discriminator, env_name, aim_input_type
     plt.savefig(savedir_w_name+'.jpg')
     plt.close()   
     disc_vis_end_time = time.time()
+    plt.close('all')
     # print('aim discriminator visualize time : {}'.format(disc_vis_end_time - disc_vis_start_time))
 
 # visualize along the grid cell in 2D topview    

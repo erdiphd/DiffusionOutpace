@@ -467,7 +467,7 @@ class Workspace(object):
                     avg_episode_success_rate+=1.0
                 
                 if self.cfg.use_aim and episode==0:                
-                    fig = plt.figure(figsize=(15,15))
+                    # fig = plt.figure(figsize=(15,15))
                     sns.set_style("darkgrid")
                     observes = np.stack(observes, axis =0)
                     obs_dict = self.eval_env.convert_obs_to_dict(observes)
@@ -502,18 +502,18 @@ class Workspace(object):
 
                     
                     timesteps = np.arange(observes.shape[0])
-                    ax1 = fig.add_subplot(4,1,1)                
-                    ax1.plot(timesteps, aim_reward, label = 'aim_reward')
-                    ax1.legend(loc ='upper right') # , prop={'size': 20}
-                    ax2 = fig.add_subplot(4,1,2)
-                    ax2.plot(timesteps, aim_disc_outputs, label = 'aim_disc_output')
-                    ax2.legend(loc ='upper right')
-                    ax3 = fig.add_subplot(4,1,3)                
-                    ax3.plot(timesteps, aim_reward_reverse, label = 'aim_reward_reverse')
-                    ax3.legend(loc ='upper right') # , prop={'size': 20}
-                    ax4 = fig.add_subplot(4,1,4)
-                    ax4.plot(timesteps, aim_disc_outputs_reverse, label = 'aim_disc_output_reverse')
-                    ax4.legend(loc ='upper right')
+                    # ax1 = fig.add_subplot(4,1,1)                
+                    # ax1.plot(timesteps, aim_reward, label = 'aim_reward')
+                    # ax1.legend(loc ='upper right') # , prop={'size': 20}
+                    # ax2 = fig.add_subplot(4,1,2)
+                    # ax2.plot(timesteps, aim_disc_outputs, label = 'aim_disc_output')
+                    # ax2.legend(loc ='upper right')
+                    # ax3 = fig.add_subplot(4,1,3)                
+                    # ax3.plot(timesteps, aim_reward_reverse, label = 'aim_reward_reverse')
+                    # ax3.legend(loc ='upper right') # , prop={'size': 20}
+                    # ax4 = fig.add_subplot(4,1,4)
+                    # ax4.plot(timesteps, aim_disc_outputs_reverse, label = 'aim_disc_output_reverse')
+                    # ax4.legend(loc ='upper right')
                     # if uniform_goal:
                     #     plt.savefig(self.eval_video_recorder.save_dir+'/aim_outputs_uniform_goal_'+str(self.step)+'.png')
                     # else:
@@ -704,26 +704,26 @@ class Workspace(object):
                 hgg_save_freq = 3 if 'Point' in self.cfg.env else 25
                 if self.cfg.use_hgg and episode % hgg_save_freq == 0 :
                     sampled_goals_for_vis = np.array(recent_sampled_goals.queue) 
-                    fig = plt.figure()
-                    sns.set_style("darkgrid")
-                    ax1 = fig.add_subplot(1,1,1)                    
-                    ax1.scatter(sampled_goals_for_vis[:, 0], sampled_goals_for_vis[:, 1])
-                    if self.cfg.env in ['AntMazeSmall-v0', "PointUMaze-v0"]:
-                        plt.xlim(-2,10)    
-                        plt.ylim(-2,10)
-                    elif self.cfg.env == "PointSpiralMaze-v0":
-                        plt.xlim(-10,10)    
-                        plt.ylim(-10,10)
-                    elif self.cfg.env in ["PointNMaze-v0"]:
-                        plt.xlim(-2,10)    
-                        plt.ylim(-2,18)
-                    elif self.cfg.env in [     'sawyer_peg_push','sawyer_peg_pick_and_place']:
-                        plt.xlim(-0.6,0.6)    
-                        plt.ylim(0.2,1.0)
-                    else:
-                        raise NotImplementedError
+                    # fig = plt.figure()
+                    # sns.set_style("darkgrid")
+                    # ax1 = fig.add_subplot(1,1,1)                    
+                    # ax1.scatter(sampled_goals_for_vis[:, 0], sampled_goals_for_vis[:, 1])
+                    # if self.cfg.env in ['AntMazeSmall-v0', "PointUMaze-v0"]:
+                    #     plt.xlim(-2,10)    
+                    #     plt.ylim(-2,10)
+                    # elif self.cfg.env == "PointSpiralMaze-v0":
+                    #     plt.xlim(-10,10)    
+                    #     plt.ylim(-10,10)
+                    # elif self.cfg.env in ["PointNMaze-v0"]:
+                    #     plt.xlim(-2,10)    
+                    #     plt.ylim(-2,18)
+                    # elif self.cfg.env in [     'sawyer_peg_push','sawyer_peg_pick_and_place']:
+                    #     plt.xlim(-0.6,0.6)    
+                    #     plt.ylim(0.2,1.0)
+                    # else:
+                    #     raise NotImplementedError
                     #plt.savefig(self.train_video_recorder.save_dir+'/train_hgg_goals_episode_'+str(episode)+'.png')
-                    plt.close()
+                    # plt.close()
                     with open(self.train_video_recorder.save_dir+'/train_hgg_goals_episode_'+str(episode)+'.pkl', 'wb') as f:
                         pkl.dump(sampled_goals_for_vis, f)
 
@@ -1162,9 +1162,9 @@ class Workspace(object):
                     elif self.cfg.env in ['sawyer_peg_push']:
                         cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'weights/sawyer_peg_push/300_Network.pth')
                     elif self.cfg.env == "PointSpiralMaze-v0":
-                        cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'weights/PointSpiralMaze/300_Network.pth')
+                        cur_model_dir = '/u/home/ser/DiffusionOutpace/palette/experiments/train_inpainting_u_maze_64_250214_104606/checkpoint/300_Network.pth'
                     elif self.cfg.env in ["PointNMaze-v0"]:
-                        cur_model_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),'weights/PointNMaze/300_Network.pth')
+                        cur_model_dir = '/u/home/ser/DiffusionOutpace/palette/experiments/train_inpainting_u_maze_64_250219_163034/checkpoint/300_Network.pth'
 
                     if not os.path.exists(f"inpaint_results/episode_{episode}") and self.cfg.env not in ['sawyer_peg_pick_and_place'] :
                         os.makedirs(f"inpaint_results/episode_{episode}")
@@ -1572,35 +1572,35 @@ class Workspace(object):
                      
                     temp_dg = temp_obs_dict['desired_goal']
                     
-                    fig = plt.figure()
-                    sns.set_style("darkgrid")
+                    # fig = plt.figure()
+                    # sns.set_style("darkgrid")
                     
-                    ax1 = fig.add_subplot(1,1,1)                                    
-                    ax1.scatter(temp_dg[:, 0], temp_dg[:, 1], label = 'goals')
+                    # ax1 = fig.add_subplot(1,1,1)                                    
+                    # ax1.scatter(temp_dg[:, 0], temp_dg[:, 1], label = 'goals')
                               
-                    if self.cfg.env in ['AntMazeSmall-v0', "PointUMaze-v0"]:
-                        x_min, x_max = -2, 10
-                        y_min, y_max = -2, 10
-                    elif self.cfg.env == "PointSpiralMaze-v0":
-                        x_min, x_max = -10, 10
-                        y_min, y_max = -10, 10
-                    elif self.cfg.env in ["PointNMaze-v0"]:
-                        x_min, x_max = -2, 10
-                        y_min, y_max = -2, 18
-                    elif self.cfg.env in [     'sawyer_peg_push','sawyer_peg_pick_and_place']:
-                        x_min, x_max = -0.6, 0.6
-                        y_min, y_max = 0.2, 1.0
-                    else:
-                        raise NotImplementedError
+                    # if self.cfg.env in ['AntMazeSmall-v0', "PointUMaze-v0"]:
+                    #     x_min, x_max = -2, 10
+                    #     y_min, y_max = -2, 10
+                    # elif self.cfg.env == "PointSpiralMaze-v0":
+                    #     x_min, x_max = -10, 10
+                    #     y_min, y_max = -10, 10
+                    # elif self.cfg.env in ["PointNMaze-v0"]:
+                    #     x_min, x_max = -2, 10
+                    #     y_min, y_max = -2, 18
+                    # elif self.cfg.env in [     'sawyer_peg_push','sawyer_peg_pick_and_place']:
+                    #     x_min, x_max = -0.6, 0.6
+                    #     y_min, y_max = 0.2, 1.0
+                    # else:
+                    #     raise NotImplementedError
 
-                    plt.xlim(x_min,x_max)    
-                    plt.ylim(y_min,y_max)
+                    # plt.xlim(x_min,x_max)    
+                    # plt.ylim(y_min,y_max)
                     
                                   
 
-                    ax1.legend(loc ="best") # 'upper right' # , prop={'size': 20}          
+                    # ax1.legend(loc ="best") # 'upper right' # , prop={'size': 20}          
                     #plt.savefig(self.eval_video_recorder.save_dir+'/curriculum_goals_'+str(self.step)+'.png')
-                    plt.close()
+                    # plt.close()
                 
                 if self.cfg.use_residual_randomwalk and (self.randomwalk_buffer.idx > 128 or self.randomwalk_buffer.full):
                     temp_obs, _, _, _, _, _ = self.randomwalk_buffer.sample_without_relabeling(128, agent.discount, sample_only_state = False)
@@ -1610,35 +1610,35 @@ class Workspace(object):
                     temp_dg = temp_obs_dict['desired_goal']
                     temp_ag = temp_obs_dict['achieved_goal']
                     
-                    fig = plt.figure()
-                    sns.set_style("darkgrid")
+                    # fig = plt.figure()
+                    # sns.set_style("darkgrid")
                     
-                    ax1 = fig.add_subplot(1,1,1)                                    
-                    ax1.scatter(temp_dg[:, 0], temp_dg[:, 1], label = 'goals')
-                    ax1.scatter(temp_ag[:, 0], temp_ag[:, 1], label = 'achieved states', color = 'red')
+                    # ax1 = fig.add_subplot(1,1,1)                                    
+                    # ax1.scatter(temp_dg[:, 0], temp_dg[:, 1], label = 'goals')
+                    # ax1.scatter(temp_ag[:, 0], temp_ag[:, 1], label = 'achieved states', color = 'red')
                               
-                    if self.cfg.env in ['AntMazeSmall-v0', "PointUMaze-v0"]:
-                        x_min, x_max = -2, 10
-                        y_min, y_max = -2, 10
-                    elif self.cfg.env == "PointSpiralMaze-v0":
-                        x_min, x_max = -10, 10
-                        y_min, y_max = -10, 10
-                    elif self.cfg.env in ["PointNMaze-v0"]:
-                        x_min, x_max = -2, 10
-                        y_min, y_max = -2, 18
-                    elif self.cfg.env in [     'sawyer_peg_push','sawyer_peg_pick_and_place']:
-                        x_min, x_max = -0.6, 0.6
-                        y_min, y_max = 0.2, 1.0
-                    else:
-                        raise NotImplementedError
-                    plt.xlim(x_min,x_max)    
-                    plt.ylim(y_min,y_max)
+                    # if self.cfg.env in ['AntMazeSmall-v0', "PointUMaze-v0"]:
+                    #     x_min, x_max = -2, 10
+                    #     y_min, y_max = -2, 10
+                    # elif self.cfg.env == "PointSpiralMaze-v0":
+                    #     x_min, x_max = -10, 10
+                    #     y_min, y_max = -10, 10
+                    # elif self.cfg.env in ["PointNMaze-v0"]:
+                    #     x_min, x_max = -2, 10
+                    #     y_min, y_max = -2, 18
+                    # elif self.cfg.env in [     'sawyer_peg_push','sawyer_peg_pick_and_place']:
+                    #     x_min, x_max = -0.6, 0.6
+                    #     y_min, y_max = 0.2, 1.0
+                    # else:
+                    #     raise NotImplementedError
+                    # plt.xlim(x_min,x_max)    
+                    # plt.ylim(y_min,y_max)
                     
                     
 
-                    ax1.legend(loc ="best") # 'upper right' # , prop={'size': 20}          
+                    # ax1.legend(loc ="best") # 'upper right' # , prop={'size': 20}          
                     #plt.savefig(self.eval_video_recorder.save_dir+'/randomwalk_goalandstates_'+str(self.step)+'.png')
-                    plt.close()
+                    # plt.close()
                     
             # save agent periodically
             if self.cfg.save_model and self.step % self.cfg.save_frequency == 0:
