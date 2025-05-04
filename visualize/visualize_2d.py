@@ -128,8 +128,10 @@ class SpiralMaze(object):
 
 
 
-def aim_visualize(class_instance,goal_candidates, agent, savedir_w_name):
-    num_test_points = 100  # 30
+def aim_visualize(class_instance,initial_state, agent, savedir_w_name):
+    disc_vis_start_time = time.time()
+
+    num_test_points = 60  # 30
     if class_instance.cfg.env in ['AntMazeSmall-v0', "PointUMaze-v0"]:
         x = np.linspace(-2, 10, num_test_points)
         y = np.linspace(-2, 10, num_test_points)
@@ -233,7 +235,6 @@ def aim_visualize(class_instance,goal_candidates, agent, savedir_w_name):
     fig.tight_layout()
     fig.savefig(f'{savedir_w_name}_ep_init_fixed_no_back.png', bbox_inches='tight')
     plt.close(fig)
-
 
 
 def Q_visualize(class_instance,observe_array, action_array, agent, savedir_w_name):
