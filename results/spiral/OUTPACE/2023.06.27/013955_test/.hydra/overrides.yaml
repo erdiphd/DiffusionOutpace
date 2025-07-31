@@ -1,0 +1,3 @@
+- env=PointSpiralMaze-v0
+- num_train_steps=600000
+- seed=7

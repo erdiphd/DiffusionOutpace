@@ -1,0 +1,4 @@
+- env=PointNMaze-v0
+- aim_disc_replay_buffer_capacity=10000
+- adam_eps=0.01
+- seed=2

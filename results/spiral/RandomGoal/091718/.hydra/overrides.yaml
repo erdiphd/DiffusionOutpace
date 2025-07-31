@@ -1,0 +1,5 @@
+- env=PointSpiralMaze-v0
+- aim_disc_replay_buffer_capacity=20000
+- save_buffer=true
+- aim_discriminator_cfg.lambda_coef=50
+- seed=0
